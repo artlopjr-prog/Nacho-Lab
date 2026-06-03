@@ -1,0 +1,2135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>Nacho Lab</title>
+  <meta name="theme-color" content="#8b0000"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="NachoLab"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    :root{
+      --bg:#1a0000;--bg2:#230000;--bg3:#2e0000;--bg4:#3a0505;
+      --fire1:#ff2200;--fire2:#ff6600;--fire3:#ffaa00;--fire4:#ffd700;
+      --cream:#fff5e6;--cream2:#ffe8c8;
+      --green:#4daa57;--green2:#2d8a38;
+      --tx:#fff5e6;--tx2:#ffcca0;--tx3:#c47a5a;
+      --bd:rgba(255,100,0,.15);--bd2:rgba(255,150,50,.28);
+      --gr:rgba(255,34,0,.25);--go:rgba(255,102,0,.2);--gy:rgba(255,170,0,.18);--gg:rgba(77,170,87,.15);
+      --fd:'Playfair Display',serif;--fb:'Outfit',sans-serif;
+      --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
+      --r:14px;--rs:9px;
+      --anim-speed:1;--orb-speed:7s;--fire-speed:3s;--scan-speed:5s;
+      --fade-dist:16px;--orb-on:1;--scan-on:1;--grain-on:1;--hex-on:0.055;
+    }
+    html{height:100%}
+    body{font-family:var(--fb);background:var(--bg);color:var(--tx);min-height:100%;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+    body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='104'%3E%3Cpath d='M30 2l28 16v32L30 66 2 50V18L30 2zM30 4L4 19v30l26 15 26-15V19L30 4z' fill='none' stroke='rgba(255,80,0,0.055)' stroke-width='1'/%3E%3C/svg%3E")}
+    #app{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100%;padding-bottom:calc(72px + var(--sb))}
+
+    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fireShim{0%{background-position:-200% center}100%{background-position:200% center}}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+    @keyframes scanH{0%{top:-5%}100%{top:105%}}
+    @keyframes orbFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+    @keyframes bubbleUp{0%{transform:translateY(0) scale(1);opacity:.8}100%{transform:translateY(-60px) scale(1.5);opacity:0}}
+    @keyframes smokeRise{0%{transform:translate(var(--sx),0) scale(.25) rotate(var(--sr));opacity:.95}35%{opacity:.9}100%{transform:translate(calc(var(--sx) + var(--sdx)),calc(var(--sy) - 280px)) scale(var(--ss)) rotate(calc(var(--sr) * -1.5));opacity:0}}
+    @keyframes particle{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--px),var(--py)) scale(0);opacity:0}}
+    @keyframes beakerShake{0%,100%{transform:rotate(0) translateY(0)}15%{transform:rotate(-7deg) translateY(-5px)}30%{transform:rotate(7deg) translateY(-10px)}45%{transform:rotate(-5deg) translateY(-6px)}60%{transform:rotate(6deg) translateY(-11px)}75%{transform:rotate(-3deg) translateY(-4px)}90%{transform:rotate(3deg) translateY(-2px)}}
+    @keyframes liquidBoil{0%,100%{transform:scaleY(1) scaleX(1) translateY(0)}33%{transform:scaleY(1.05) scaleX(.96) translateY(-3px)}66%{transform:scaleY(.97) scaleX(1.03) translateY(2px)}}
+    @keyframes formulaReveal{0%{opacity:0;transform:translateY(40px) scale(.75)}65%{transform:translateY(-6px) scale(1.05)}100%{opacity:1;transform:translateY(0) scale(1)}}
+    @keyframes glowPulse{0%,100%{text-shadow:0 0 30px rgba(255,200,0,.7)}50%{text-shadow:0 0 60px rgba(255,255,100,1),0 0 100px rgba(255,150,0,.8)}}
+    @keyframes ctaBounce{0%{opacity:0;transform:translateY(24px)}100%{opacity:1;transform:translateY(0)}}
+    @keyframes shake{0%,100%{transform:rotate(0)}20%{transform:rotate(-4deg)}40%{transform:rotate(4deg)}60%{transform:rotate(-3deg)}80%{transform:rotate(3deg)}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes countUp{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+    @keyframes ripple{to{transform:scale(4);opacity:0}}
+    @keyframes sparkFly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--sx),var(--sy)) scale(0);opacity:0}}
+    @keyframes ctaPulse{0%,100%{box-shadow:0 6px 24px var(--gr),0 0 0 0 rgba(255,100,0,.4)}50%{box-shadow:0 10px 32px var(--gr),0 0 0 8px rgba(255,100,0,0)}}
+    @keyframes codePop{0%{transform:scale(0.7);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+    @keyframes tickPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+    @keyframes regGlow{0%,100%{box-shadow:0 0 0 0 rgba(255,170,0,.0)}50%{box-shadow:0 0 0 6px rgba(255,170,0,.15)}}
+
+    .fu{animation:fadeUp .38s ease both}
+    .fu1{animation:fadeUp .38s .07s ease both}
+    .fu2{animation:fadeUp .38s .14s ease both}
+    .fu3{animation:fadeUp .38s .21s ease both}
+
+    /* ── HEADER ── */
+    .hdr{position:sticky;top:0;z-index:300;padding:calc(var(--st)+10px) 18px 10px;background:rgba(26,0,0,.96);backdrop-filter:blur(24px) saturate(1.8);-webkit-backdrop-filter:blur(24px) saturate(1.8);border-bottom:1px solid var(--bd2);display:flex;align-items:center;justify-content:space-between;overflow:hidden}
+    .hdr::before{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--fire2),var(--fire3),var(--fire2),transparent)}
+    .hdr::after{content:'';position:absolute;left:0;width:100%;height:60px;background:linear-gradient(transparent,rgba(255,100,0,.04),transparent);animation:scanH var(--scan-speed) linear infinite;pointer-events:none;opacity:var(--scan-on)}
+    .logo{font-family:var(--fd);display:flex;align-items:center;gap:9px}
+    .logo-gem{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--fire1),var(--fire3));display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;box-shadow:0 0 16px var(--gr),0 4px 12px rgba(0,0,0,.4)}
+    .logo-text{display:flex;flex-direction:column;line-height:1}
+    .logo-n{color:var(--fire3);font-size:11px;font-weight:700;letter-spacing:3px;font-family:var(--fb);text-transform:uppercase}
+    .logo-l{color:var(--cream);font-size:20px;font-weight:900}
+    .hdr-r{display:flex;gap:8px;align-items:center}
+    .hcart{background:rgba(255,102,0,.12);border:1px solid var(--bd2);border-radius:var(--rs);padding:8px 13px;display:flex;align-items:center;gap:7px;font-family:var(--fb);font-size:13px;font-weight:700;color:var(--tx);cursor:pointer;transition:all .2s}
+    .hcart:active{transform:scale(.95)}
+    .hcart:hover{border-color:var(--fire3);box-shadow:0 0 12px var(--go)}
+    .cpill{background:linear-gradient(135deg,var(--fire1),var(--fire2));color:#fff;border-radius:10px;padding:1px 6px;font-size:11px;font-weight:800;min-width:18px;text-align:center}
+    .admin-btn{background:rgba(255,102,0,.08);border:1px solid var(--bd);border-radius:var(--rs);padding:8px 10px;color:var(--tx3);cursor:pointer;font-size:15px;transition:all .2s}
+    .admin-btn:hover{border-color:var(--fire3);color:var(--fire3)}
+    .reg-btn{background:rgba(255,170,0,.12);border:1px solid rgba(255,170,0,.35);border-radius:var(--rs);padding:8px 12px;color:var(--fire4);cursor:pointer;font-size:12px;font-weight:800;letter-spacing:.5px;transition:all .2s;font-family:var(--fb)}
+    .reg-btn:hover{background:rgba(255,170,0,.2)}
+
+    /* ── SCHEDULE BAR ── */
+    .sched-bar{background:rgba(255,60,0,.07);border-bottom:1px solid var(--bd);padding:8px 20px;display:flex;gap:18px;overflow-x:auto;scrollbar-width:none}
+    .sched-bar::-webkit-scrollbar{display:none}
+    .sb-item{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--tx2);white-space:nowrap;flex-shrink:0}
+    .sb-dot{width:6px;height:6px;border-radius:50%;background:var(--fire2);flex-shrink:0;animation:pulse 2s ease infinite}
+
+    /* ── COUNTDOWN STRIP ── */
+    .countdown-strip{background:linear-gradient(90deg,rgba(255,34,0,.18),rgba(255,170,0,.12),rgba(255,34,0,.18));border-bottom:1px solid rgba(255,170,0,.3);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12;overflow:hidden;position:relative}
+    .countdown-strip::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(255,170,0,.06) 50%,transparent 100%);animation:fireShim 3s linear infinite}
+    .cd-left{display:flex;align-items:center;gap:8px;flex-shrink:0}
+    .cd-label{font-size:10px;font-weight:800;color:rgba(255,200,100,.75);letter-spacing:2px;text-transform:uppercase}
+    .cd-event{font-family:var(--fd);font-size:13px;font-weight:900;color:var(--cream)}
+    .cd-units{display:flex;gap:6px;align-items:center}
+    .cd-unit{background:rgba(0,0,0,.4);border:1px solid rgba(255,170,0,.3);border-radius:7px;padding:5px 8px;text-align:center;min-width:44px}
+    .cd-num{font-family:var(--fd);font-size:20px;font-weight:900;color:var(--fire3);line-height:1;animation:tickPulse .5s ease infinite}
+    .cd-lbl{font-size:8px;color:var(--tx3);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-top:1px}
+    .cd-sep{font-size:18px;color:var(--fire2);font-weight:900;opacity:.6;animation:pulse 1s ease infinite}
+    .cd-disc{background:linear-gradient(135deg,rgba(255,170,0,.2),rgba(255,34,0,.15));border:1px solid rgba(255,170,0,.4);border-radius:8px;padding:5px 10px;display:flex;align-items:center;gap:5px;flex-shrink:0}
+    .cd-disc-pct{font-family:var(--fd);font-size:18px;font-weight:900;color:var(--fire3)}
+    .cd-disc-txt{font-size:10px;color:var(--tx2);font-weight:700;line-height:1.3}
+
+    /* ── BOTTOM NAV ── */
+    .bnav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(20,0,0,.98);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border-top:1px solid var(--bd2);display:flex;padding:6px 0 calc(6px + var(--sb))}
+    .nb{flex:1;border:none;background:transparent;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;cursor:pointer;font-family:var(--fb);font-size:10px;font-weight:700;color:var(--tx3);transition:color .2s;letter-spacing:.3px;text-transform:uppercase;position:relative}
+    .nb .bi{font-size:19px;line-height:1;transition:transform .2s}
+    .nb.on{color:var(--fire3)}
+    .nb.on .bi{transform:scale(1.18)}
+    .nb.on::before{content:'';position:absolute;top:0;left:15%;right:15%;height:2px;background:linear-gradient(90deg,var(--fire1),var(--fire3));border-radius:0 0 3px 3px}
+    .nbadge{position:absolute;top:2px;right:calc(50% - 20px);background:var(--fire1);color:#fff;border-radius:8px;padding:1px 5px;font-size:9px;font-weight:800;min-width:14px;text-align:center}
+
+    /* ── BUTTONS ── */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 22px;border-radius:12px;border:none;font-family:var(--fb);font-size:15px;font-weight:700;cursor:pointer;transition:all .18s}
+    .b-fire{background:linear-gradient(135deg,var(--fire1),var(--fire2),var(--fire3));background-size:200% auto;color:#fff;box-shadow:0 6px 24px var(--gr);animation:fireShim var(--fire-speed) linear infinite}
+    .b-fire:active{transform:scale(.95);box-shadow:0 2px 8px var(--gr)}
+    .b-amber{background:linear-gradient(135deg,var(--fire3),var(--fire4));color:#1a0000;font-weight:800;box-shadow:0 6px 20px var(--gy)}
+    .b-amber:active{transform:scale(.95)}
+    .b-fresh{background:linear-gradient(135deg,var(--green2),var(--green));color:#fff;box-shadow:0 6px 18px var(--gg)}
+    .b-fresh:active{transform:scale(.95)}
+    .b-ol{background:transparent;color:var(--tx);border:1.5px solid var(--bd2)}
+    .b-ol:active{border-color:var(--fire3);color:var(--fire3)}
+    .b-ghost{background:var(--bg3);color:var(--tx2);border:1px solid var(--bd);font-size:13px;padding:10px 16px}
+    .b-wa{background:#25d366;color:#fff;box-shadow:0 6px 18px rgba(37,211,102,.3)}
+    .b-wa:active{transform:scale(.97)}
+    .b-danger{background:rgba(255,34,0,.1);color:var(--fire1);border:1px solid rgba(255,34,0,.25);font-size:13px;padding:8px 12px}
+    .b-warn{background:rgba(255,170,0,.1);color:var(--fire3);border:1px solid rgba(255,170,0,.25);font-size:13px;padding:8px 12px}
+    .b-sm{font-size:13px;padding:9px 16px}
+    .bfull{width:100%}
+    .btn:disabled{opacity:.35;cursor:not-allowed;transform:none !important;box-shadow:none !important;animation:none !important}
+    .btn-row{display:flex;gap:10px;padding:14px 20px 0;flex-wrap:wrap}
+    .btn-row .btn{flex:1;min-width:120px}
+
+    /* ── HERO ── */
+    .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--bd2)}
+    .hero-img{width:100%;height:250px;object-fit:cover;display:block;filter:brightness(.42) saturate(1.7) contrast(1.1)}
+    .hero-ov{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(26,0,0,.15) 0%,rgba(26,0,0,0) 25%,rgba(26,0,0,.75) 72%,rgba(26,0,0,1) 100%)}
+    .orb{position:absolute;border-radius:50%;pointer-events:none;filter:blur(42px);animation:orbFloat var(--orb-speed) ease-in-out infinite;opacity:var(--orb-on)}
+    .o1{width:160px;height:160px;background:radial-gradient(circle,rgba(255,34,0,.5),transparent 70%);top:-40px;right:-30px}
+    .o2{width:100px;height:100px;background:radial-gradient(circle,rgba(255,102,0,.4),transparent 70%);bottom:-20px;left:8%;animation-delay:-3s}
+    .o3{width:70px;height:70px;background:radial-gradient(circle,rgba(255,170,0,.35),transparent 70%);top:30%;right:25%;animation-delay:-5s}
+    .hero-content{position:absolute;bottom:0;left:0;right:0;padding:22px}
+    .hero-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(255,170,0,.12);border:1px solid rgba(255,170,0,.3);color:var(--fire4);padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px}
+    .hero h1{font-family:var(--fd);font-size:clamp(44px,13vw,78px);font-weight:900;line-height:.87;letter-spacing:-1.5px}
+    .h1a{color:var(--cream);display:block}
+    .h1b{display:block;background:linear-gradient(90deg,var(--fire1),var(--fire2),var(--fire3),var(--fire4));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-size:300% auto;animation:fireShim 2.5s linear infinite}
+    .hero-sub{margin-top:10px;color:rgba(255,245,230,.75);font-size:13px;line-height:1.55;max-width:300px}
+    .hero-sub strong{color:var(--fire3);font-weight:700}
+    .hcta{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+    .cta-main{position:relative;overflow:hidden;transform-origin:center;transition:transform .12s cubic-bezier(.34,1.56,.64,1),box-shadow .12s ease}
+    .cta-main:active{transform:scale(.93) !important}
+    .cta-main .cta-ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.35);transform:scale(0);animation:ripple .5s ease-out forwards;pointer-events:none}
+    .cta-main .cta-spark{position:absolute;width:6px;height:6px;border-radius:50%;pointer-events:none;animation:sparkFly .6s ease-out forwards}
+    .cta-main{animation:ctaPulse 2.5s ease-in-out infinite}
+
+    .fstrip{display:flex;gap:6px;padding:12px 20px 0;overflow-x:auto;scrollbar-width:none}
+    .fstrip::-webkit-scrollbar{display:none}
+    .fchip{flex-shrink:0;padding:5px 11px;border-radius:8px;font-size:11px;font-weight:700;white-space:nowrap}
+    .fc-r{background:rgba(255,34,0,.1);border:1px solid rgba(255,34,0,.3);color:#ff6644}
+    .fc-o{background:rgba(255,102,0,.1);border:1px solid rgba(255,102,0,.3);color:var(--fire2)}
+    .fc-y{background:rgba(255,170,0,.1);border:1px solid rgba(255,170,0,.3);color:var(--fire3)}
+    .fc-g{background:rgba(77,170,87,.1);border:1px solid rgba(77,170,87,.3);color:var(--green)}
+
+    /* ── FOOD BANNER ── */
+    .food-banner{margin:14px 20px 0;border-radius:var(--r);overflow:hidden;position:relative;height:148px;border:1px solid var(--bd2)}
+    .food-banner img{width:100%;height:100%;object-fit:cover;filter:brightness(.5) saturate(1.6) contrast(1.1)}
+    .food-banner-ov{position:absolute;inset:0;background:linear-gradient(135deg,rgba(180,0,0,.7),rgba(255,102,0,.35));display:flex;align-items:center;padding:20px}
+    .food-banner-text h3{font-family:var(--fd);font-size:21px;font-weight:900;color:#fff;line-height:1.1}
+    .food-banner-text p{font-size:12px;color:rgba(255,245,230,.8);margin-top:4px;font-weight:600}
+
+    /* ── STATS ── */
+    .stats{display:flex;gap:8px;padding:14px 20px 0;overflow-x:auto;scrollbar-width:none}
+    .stats::-webkit-scrollbar{display:none}
+    .stp{flex-shrink:0;background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:11px 14px;text-align:center}
+    .stp .sv{font-family:var(--fd);font-size:22px;font-weight:900}
+    .stp .sl{font-size:10px;color:var(--tx3);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-top:2px}
+    .sf .sv{color:var(--fire1)}.sw .sv{color:var(--fire3)}.sc .sv{color:var(--green)}
+
+    /* ── STEP PILLS ── */
+    .srow{display:flex;gap:7px;padding:14px 20px 0;overflow-x:auto;scrollbar-width:none}
+    .srow::-webkit-scrollbar{display:none}
+    .sp{flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--bd);color:var(--tx3);background:var(--bg2);transition:all .15s;font-family:var(--fb)}
+    .sp.a{border-color:var(--fire3);color:var(--fire3);background:rgba(255,170,0,.08);box-shadow:0 0 10px var(--gy)}
+    .sp.d{border-color:rgba(77,170,87,.4);color:var(--green);background:rgba(77,170,87,.06)}
+
+    /* ── SECTION HEAD ── */
+    .sh{padding:18px 20px 0}
+    .st{font-family:var(--fd);font-size:28px;font-weight:900;color:var(--cream);letter-spacing:-.5px}
+    .st .fi{color:var(--fire2)}
+    .st .gw{background:linear-gradient(90deg,var(--fire2),var(--fire4));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .st .fr{color:var(--green)}
+    .ss{font-size:13px;color:var(--tx2);margin-top:4px;font-weight:500}
+
+    /* ── SIZE GRID ── */
+    .sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 20px 0}
+    .szc{background:var(--bg2);border:1.5px solid var(--bd);border-radius:var(--r);padding:18px 10px;cursor:pointer;transition:all .2s;text-align:center;position:relative;overflow:hidden}
+    .szc::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,102,0,.12),transparent);opacity:0;transition:opacity .2s}
+    .szc:active{transform:scale(.95)}
+    .szc.sel{border-color:var(--fire3);box-shadow:0 0 0 3px var(--gy)}
+    .szc.sel::before{opacity:1}
+    .szb{font-size:26px;margin-bottom:6px}
+    .szn{font-family:var(--fd);font-size:18px;font-weight:900;color:var(--cream)}
+    .szv{font-size:11px;color:var(--tx3);margin-top:2px;font-weight:600}
+    .szp{font-size:22px;font-weight:800;color:var(--fire3);margin-top:8px;font-family:var(--fd)}
+    .szb2{font-size:10px;color:var(--green);margin-top:3px;font-weight:800;letter-spacing:.5px;text-transform:uppercase}
+
+    /* ── SELECT CARDS ── */
+    .cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(136px,1fr));gap:10px;padding:14px 20px 0}
+    .sc{background:var(--bg2);border:1.5px solid var(--bd);border-radius:var(--r);padding:16px 12px;cursor:pointer;transition:all .2s;text-align:center;position:relative;overflow:hidden}
+    .sc:active{transform:scale(.95)}
+    .sc.sr{border-color:var(--fire1);box-shadow:0 0 0 3px var(--gr);background:rgba(255,34,0,.06)}
+    .sc.so{border-color:var(--fire2);box-shadow:0 0 0 3px var(--go);background:rgba(255,102,0,.06)}
+    .sc.sy{border-color:var(--fire3);box-shadow:0 0 0 3px var(--gy);background:rgba(255,170,0,.06)}
+    .sc.sg{border-color:var(--green);box-shadow:0 0 0 3px var(--gg);background:rgba(77,170,87,.06)}
+    .sc.disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
+    .chk{position:absolute;top:8px;right:8px;width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--fire1),var(--fire3));color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(.4);transition:all .2s}
+    .sc.sr .chk,.sc.so .chk,.sc.sy .chk,.sc.sg .chk{opacity:1;transform:scale(1)}
+    .ce{font-size:28px;margin-bottom:8px}
+    .cn{font-size:13px;font-weight:700;color:var(--cream);line-height:1.3}
+    .cd{font-size:11px;color:var(--tx2);margin-top:3px}
+    .cx{font-size:11px;color:var(--fire3);font-weight:800;margin-top:4px}
+    .heat{display:flex;gap:3px;margin-top:5px;justify-content:center}
+    .hd{width:8px;height:8px;border-radius:50%;background:var(--bg4)}
+    .hd.on{background:linear-gradient(135deg,var(--fire1),var(--fire3))}
+
+    /* ── BEAKER FORMULA VISUALIZER ── */
+    .formula-lab{padding:16px 20px 0}
+    .lab-container{background:var(--bg2);border:1px solid var(--bd2);border-radius:var(--r);padding:18px 16px;position:relative;overflow:hidden}
+    .lab-container::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,34,0,.04),transparent);pointer-events:none}
+    .lab-title{font-family:var(--fd);font-size:14px;font-weight:900;color:var(--fire3);text-transform:uppercase;letter-spacing:2px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+    .lab-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--bd2),transparent)}
+    .lab-inner{display:flex;align-items:flex-end;gap:18px}
+    .beaker-wrap{flex-shrink:0;position:relative;width:90px}
+    .beaker-wrap svg{width:90px;height:130px;filter:drop-shadow(0 0 12px rgba(255,100,0,.3))}
+    .formula-layers{flex:1;display:flex;flex-direction:column;gap:6px;justify-content:flex-end;min-height:120px}
+    .flayer{border-radius:8px;padding:7px 12px;display:flex;align-items:center;gap:8px;animation:dropIn .4s ease both;position:relative;overflow:hidden}
+    .flayer::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,.06),transparent)}
+    .flayer .fl-emoji{font-size:16px;flex-shrink:0}
+    .flayer .fl-name{font-size:12px;font-weight:700;color:#fff;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .flayer .fl-badge{font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;background:rgba(0,0,0,.25);color:rgba(255,255,255,.9);flex-shrink:0}
+    .flayer.l-size   {background:linear-gradient(135deg,#7b1fa2,#9c27b0)}
+    .flayer.l-base   {background:linear-gradient(135deg,#bf360c,#e64a19)}
+    .flayer.l-protein{background:linear-gradient(135deg,#e65100,#ff6d00)}
+    .flayer.l-topping{background:linear-gradient(135deg,#2e7d32,#43a047)}
+    .flayer.l-salsa  {background:linear-gradient(135deg,#b71c1c,#e53935)}
+    .formula-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:120px;opacity:.35}
+    .formula-empty .ei{font-size:32px;margin-bottom:6px}
+    .formula-empty p{font-size:12px;color:var(--tx3);text-align:center;font-weight:600}
+    .formula-progress{margin-top:12px;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+    .formula-progress-fill{height:100%;background:linear-gradient(90deg,var(--fire1),var(--fire3),var(--fire4));border-radius:3px;transition:width .5s cubic-bezier(.34,1.56,.64,1)}
+
+    /* ── REGISTRATION SCREEN ── */
+    .reg-screen{position:fixed;inset:0;z-index:600;background:rgba(6,0,0,.97);overflow-y:auto;animation:fadeUp .3s ease}
+    .reg-inner{max-width:480px;margin:0 auto;padding:calc(var(--st) + 20px) 24px calc(80px + var(--sb))}
+    .reg-close{position:absolute;top:calc(var(--st)+16px);right:20px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);font-size:16px;padding:7px 11px;border-radius:8px;cursor:pointer;font-family:var(--fb);transition:all .2s}
+    .reg-close:hover{color:var(--fire3);border-color:var(--fire3)}
+    .reg-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,170,0,.12);border:1px solid rgba(255,170,0,.3);color:var(--fire4);padding:5px 14px;border-radius:20px;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
+    .reg-title{font-family:var(--fd);font-size:clamp(36px,10vw,52px);font-weight:900;line-height:.9;margin-bottom:10px}
+    .reg-t1{display:block;color:var(--cream)}
+    .reg-t2{display:block;background:linear-gradient(90deg,var(--fire1),var(--fire2),var(--fire3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-size:200% auto;animation:fireShim 2s linear infinite}
+    .reg-sub{font-size:14px;color:var(--tx2);line-height:1.6;margin-bottom:24px;font-weight:500}
+    .reg-sub strong{color:var(--fire3)}
+    .reg-benefits{display:flex;flex-direction:column;gap:8px;margin-bottom:24px;background:rgba(255,170,0,.05);border:1px solid rgba(255,170,0,.15);border-radius:12px;padding:16px}
+    .reg-benefit{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--tx2);font-weight:600}
+    .reg-benefit .rb-icon{font-size:18px;flex-shrink:0}
+    .reg-benefit strong{color:var(--cream)}
+    .reg-form{display:flex;flex-direction:column;gap:14px}
+    .code-reveal{background:linear-gradient(135deg,rgba(255,170,0,.1),rgba(255,34,0,.08));border:2px solid rgba(255,170,0,.4);border-radius:var(--r);padding:24px;text-align:center;animation:codePop .5s cubic-bezier(.34,1.56,.64,1) both;position:relative;overflow:hidden}
+    .code-reveal::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent,rgba(255,170,0,.04),transparent);animation:fireShim 2s linear infinite}
+    .code-reveal-label{font-size:10px;font-weight:800;color:var(--tx3);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px}
+    .code-reveal-code{font-family:var(--fd);font-size:clamp(28px,8vw,42px);font-weight:900;color:var(--fire3);letter-spacing:3px;margin-bottom:6px;text-shadow:0 0 30px rgba(255,170,0,.4)}
+    .code-reveal-disc{font-size:13px;color:var(--tx2);font-weight:600;margin-bottom:16px}
+    .code-reveal-disc strong{color:var(--cream)}
+    .code-copy-btn{background:rgba(255,170,0,.12);border:1px solid rgba(255,170,0,.35);color:var(--fire3);font-family:var(--fb);font-size:12px;font-weight:800;padding:8px 18px;border-radius:8px;cursor:pointer;transition:all .2s;letter-spacing:.5px}
+    .code-copy-btn:hover{background:rgba(255,170,0,.2)}
+    .code-copy-btn:active{transform:scale(.95)}
+    .code-note{font-size:11px;color:var(--tx3);margin-top:10px;font-weight:600;line-height:1.5}
+    .reg-countdown{background:rgba(0,0,0,.3);border:1px solid rgba(255,170,0,.2);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-top:12px}
+    .reg-cd-icon{font-size:24px;flex-shrink:0}
+    .reg-cd-text{flex:1}
+    .reg-cd-title{font-size:13px;font-weight:700;color:var(--cream)}
+    .reg-cd-sub{font-size:11px;color:var(--tx3);margin-top:2px;font-weight:600}
+
+    /* ── PRE-LAUNCH LOCKED ORDER SCREEN ── */
+    .prelaunch-screen{padding:24px 20px;text-align:center}
+    .prelaunch-emoji{font-size:64px;margin-bottom:16px;display:block}
+    .prelaunch-title{font-family:var(--fd);font-size:32px;font-weight:900;color:var(--cream);margin-bottom:8px;line-height:1.1}
+    .prelaunch-sub{font-size:14px;color:var(--tx2);margin-bottom:24px;line-height:1.6;font-weight:500;max-width:300px;margin-left:auto;margin-right:auto}
+    .prelaunch-cd{display:flex;gap:10px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+    .pcd-unit{background:var(--bg2);border:1.5px solid var(--bd2);border-radius:12px;padding:14px 10px;min-width:72px;text-align:center}
+    .pcd-num{font-family:var(--fd);font-size:36px;font-weight:900;color:var(--fire3);line-height:1}
+    .pcd-lbl{font-size:10px;color:var(--tx3);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-top:4px}
+
+    /* ── EXPLOSION OVERLAY ── */
+    .exp-overlay{position:fixed;inset:0;z-index:9999;background:rgba(8,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;pointer-events:all}
+    .exp-scene{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%}
+    .smoke-puff{position:absolute;border-radius:50%;animation:smokeRise linear forwards}
+    .particle{position:absolute;border-radius:50%;animation:particle .9s ease-out forwards}
+    .exp-beaker{position:absolute;bottom:18%;left:50%;transform:translateX(-50%);animation:beakerShake .6s ease 0s forwards;transform-origin:bottom center;filter:drop-shadow(0 0 28px rgba(255,150,0,.7))}
+    .exp-liquid{animation:liquidBoil .35s ease-in-out infinite}
+    .exp-text{position:relative;z-index:10;text-align:center;display:flex;flex-direction:column;align-items:center;padding:0 24px}
+    .exp-label{font-size:11px;font-weight:800;letter-spacing:3px;color:rgba(255,200,100,.7);text-transform:uppercase;margin-bottom:8px;animation:formulaReveal .4s .5s ease both;opacity:0}
+    .exp-title{font-family:var(--fd);font-size:clamp(38px,11vw,64px);font-weight:900;line-height:.9;animation:formulaReveal .5s .6s ease both;opacity:0;animation:glowPulse 1.5s ease-in-out infinite,formulaReveal .5s .6s ease both}
+    .exp-t1{display:block;color:#ff2200}
+    .exp-t2{display:block;background:linear-gradient(90deg,#ff6600,#ffcc00,#ff6600);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:fireShim 1.5s linear infinite}
+    .exp-body{font-size:14px;color:rgba(255,245,220,.8);margin-top:14px;line-height:1.6;max-width:260px;font-weight:500;animation:formulaReveal .5s .85s ease both;opacity:0}
+    .exp-cta{margin-top:22px;display:flex;flex-direction:column;align-items:center;gap:10px;animation:ctaBounce .5s 1.1s ease both;opacity:0}
+    .exp-cta-text{font-size:15px;font-weight:800;color:#ffcc00;animation:pulse 1.2s ease infinite}
+    .exp-arrow{font-size:28px;animation:pulse .8s ease infinite}
+    .exp-skip{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,245,220,.5);font-size:12px;font-weight:700;padding:8px 20px;border-radius:20px;cursor:pointer;font-family:var(--fb);transition:all .2s}
+
+    /* ── TOPPINGS ── */
+    .tw{display:flex;flex-wrap:wrap;gap:8px;padding:14px 20px 0}
+    .tc{padding:9px 14px;border-radius:22px;border:1.5px solid var(--bd);background:var(--bg2);color:var(--tx2);font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;font-family:var(--fb)}
+    .tc:active{transform:scale(.94)}
+    .tc.on{border-color:var(--green);color:var(--cream);background:rgba(77,170,87,.08);box-shadow:0 0 10px var(--gg)}
+
+    /* ── SUMMARY ── */
+    .sumbox{margin:14px 20px 0;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+    .sumhdr{padding:11px 16px;background:linear-gradient(90deg,rgba(255,34,0,.2),rgba(255,102,0,.12));border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px}
+    .sumhdr span{font-size:11px;font-weight:800;color:var(--fire3);letter-spacing:1.2px;text-transform:uppercase}
+    .sr2{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 16px;border-bottom:1px solid var(--bd)}
+    .sr2:last-child{border-bottom:none}
+    .slb{font-size:13px;color:var(--tx2);font-weight:500}
+    .svl{font-size:13px;color:var(--cream);font-weight:700;text-align:right;max-width:60%}
+    .stot{padding:13px 16px;background:linear-gradient(90deg,rgba(255,102,0,.12),rgba(255,170,0,.08));display:flex;justify-content:space-between;align-items:center}
+    .stot .slb{color:var(--cream);font-size:14px;font-weight:800}
+    .stot .svl{font-family:var(--fd);font-size:30px;color:var(--fire3);-webkit-text-fill-color:var(--fire3)}
+
+    /* ── CART ── */
+    .ci{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin:12px 20px 0;display:flex;gap:12px;align-items:flex-start;position:relative;overflow:hidden}
+    .ci::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--fire1),var(--fire3))}
+    .cib{flex:1}.cib h4{font-size:15px;font-weight:700;color:var(--cream)}.cib p{font-size:12px;color:var(--tx2);margin-top:4px;line-height:1.5;font-weight:500}
+    .cir{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0}
+    .cip{font-family:var(--fd);font-size:24px;font-weight:900;background:linear-gradient(135deg,var(--fire2),var(--fire4));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .cempty{text-align:center;padding:64px 20px}
+    .cempty .ei{font-size:56px;margin-bottom:12px}
+    .cempty h3{font-size:20px;font-weight:800;color:var(--cream);margin-bottom:8px;font-family:var(--fd)}
+    .cempty p{font-size:14px;color:var(--tx2);margin-bottom:24px;font-weight:500}
+    .ctot{margin:16px 20px 0;background:linear-gradient(135deg,rgba(255,34,0,.12),rgba(255,102,0,.08));border:1px solid rgba(255,102,0,.25);border-radius:var(--r);padding:18px 20px;display:flex;justify-content:space-between;align-items:center}
+    .ctl{font-size:13px;color:var(--tx2);font-weight:600;margin-bottom:2px}
+    .cta{font-family:var(--fd);font-size:42px;font-weight:900;background:linear-gradient(135deg,var(--fire1),var(--fire3),var(--fire4));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+    /* ── DISCOUNT BANNER in cart ── */
+    .disc-banner{margin:12px 20px 0;background:linear-gradient(135deg,rgba(255,170,0,.1),rgba(255,34,0,.08));border:1.5px solid rgba(255,170,0,.35);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px}
+    .disc-banner .db-icon{font-size:24px;flex-shrink:0}
+    .disc-banner .db-text{flex:1;font-size:12px;color:var(--tx2);font-weight:600;line-height:1.4}
+    .disc-banner .db-text strong{color:var(--fire3)}
+    .disc-banner .db-amt{font-family:var(--fd);font-size:22px;font-weight:900;color:var(--green);flex-shrink:0}
+
+    /* ── PAYMENTS ── */
+    .pgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:14px 20px 0}
+    .pc{background:var(--bg2);border:1.5px solid var(--bd);border-radius:var(--r);padding:16px 12px;cursor:pointer;transition:all .2s;text-align:center;font-family:var(--fb)}
+    .pc:active{transform:scale(.95)}
+    .pc.sel{border-color:var(--fire3);background:rgba(255,170,0,.08);box-shadow:0 0 0 3px var(--gy)}
+    .pi{font-size:28px;margin-bottom:6px}
+    .pn{font-size:14px;font-weight:700;color:var(--cream)}
+    .pd{font-size:11px;color:var(--tx2);margin-top:2px;font-weight:500}
+    .p-link{font-size:10px;color:var(--fire3);margin-top:3px;font-weight:700;word-break:break-all}
+
+    /* ── INPUTS ── */
+    .ig{margin-bottom:14px}
+    .ig label{display:block;font-size:11px;font-weight:700;color:var(--tx3);margin-bottom:6px;letter-spacing:1px;text-transform:uppercase}
+    .ig input,.ig select,.ig textarea{width:100%;background:var(--bg3);border:1.5px solid var(--bd2);border-radius:11px;padding:12px 15px;color:var(--cream);font-family:var(--fb);font-size:15px;font-weight:600;outline:none;transition:border-color .2s;-webkit-appearance:none}
+    .ig input:focus,.ig select:focus,.ig textarea:focus{border-color:var(--fire3);box-shadow:0 0 0 3px var(--gy)}
+    .ig select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23c47a5a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 15px center;padding-right:38px}
+    .ig select option{background:#1a0000;color:var(--cream)}
+    .ig textarea{resize:vertical;min-height:70px}
+    .ir{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+    /* ── TRACKER ── */
+    .tks{display:flex;flex-direction:column}.tk{display:flex;gap:16px}
+    .tl{display:flex;flex-direction:column;align-items:center}
+    .td{width:40px;height:40px;border-radius:50%;border:2px solid var(--bd2);background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:all .3s}
+    .td.dn{border-color:var(--green);background:rgba(77,170,87,.1)}
+    .td.ac{border-color:var(--fire3);background:rgba(255,170,0,.1);box-shadow:0 0 14px var(--gy)}
+    .tc2{width:2px;flex:1;background:var(--bd);margin:4px 0;min-height:26px;transition:background .3s}
+    .tc2.dn{background:linear-gradient(180deg,var(--green),var(--green2))}
+    .ti{padding:2px 0 24px}.ti h4{font-size:15px;font-weight:700}.ti p{font-size:13px;color:var(--tx2);margin-top:2px;font-weight:500}
+    .tt{font-size:12px;color:var(--fire3);margin-top:3px;font-weight:700}
+    .wabox{background:rgba(77,170,87,.06);border:1px solid rgba(77,170,87,.2);border-radius:var(--r);padding:16px;margin-top:20px}
+    .wabox p{font-size:13px;color:var(--tx2);margin-bottom:10px;font-weight:500}
+
+    /* ── EVENTS ── */
+    .egrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:14px 20px 0}
+    .ev{background:var(--bg2);border:1.5px solid var(--bd);border-radius:var(--r);padding:18px 14px;cursor:pointer;transition:all .2s}
+    .ev:active{transform:scale(.95)}
+    .ev.sel{border-color:var(--fire2);background:rgba(255,102,0,.07);box-shadow:0 0 0 3px var(--go)}
+    .evi{font-size:30px;margin-bottom:8px}.evn{font-size:13px;font-weight:700;color:var(--cream);line-height:1.3}
+    .evm{font-size:11px;color:var(--tx2);margin-top:3px;font-weight:500}
+    .evp{font-size:13px;color:var(--fire3);font-weight:800;margin-top:5px;font-family:var(--fd)}
+    .succ{text-align:center;padding:60px 24px;animation:fadeUp .5s ease}
+    .succ .si{font-size:64px;margin-bottom:16px}
+    .succ h2{font-family:var(--fd);font-size:38px;font-weight:900;background:linear-gradient(135deg,var(--fire1),var(--fire3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+    .succ p{font-size:14px;color:var(--tx2);max-width:300px;margin:0 auto 24px;line-height:1.6;font-weight:500}
+
+    /* ── INSTALL BAR ── */
+    .ibar{margin:14px 20px 0;background:rgba(255,102,0,.08);border:1px solid rgba(255,102,0,.2);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:12px}
+    .ibar .ii{font-size:28px;flex-shrink:0}
+    .ibar h4{font-size:13px;font-weight:700;color:var(--cream)}
+    .ibar p{font-size:11px;color:var(--tx2);margin-top:2px;font-weight:500}
+    .ibar button{background:linear-gradient(135deg,var(--fire1),var(--fire3));color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--fb);flex-shrink:0;white-space:nowrap;transition:all .2s}
+    .ibar button:active{transform:scale(.95)}
+
+    /* ── MODAL ── */
+    .modal-bg{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.9);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:flex-end;justify-content:center;animation:fadeUp .2s ease}
+    .modal{background:var(--bg2);border:1px solid var(--bd2);border-radius:22px 22px 0 0;width:100%;max-width:520px;max-height:94vh;overflow-y:auto;padding-bottom:calc(24px + var(--sb))}
+    .modal-handle{width:36px;height:4px;background:var(--bd2);border-radius:2px;margin:12px auto 0}
+    .modal-hdr{padding:16px 20px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg2);z-index:10}
+    .modal-title{font-family:var(--fd);font-size:22px;font-weight:900}
+    .modal-title .fi{color:var(--fire2)}
+    .modal-title .gw{background:linear-gradient(90deg,var(--fire3),var(--fire4));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .modal-close{background:var(--bg3);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font-size:16px;cursor:pointer;color:var(--tx2);transition:all .2s}
+    .modal-close:hover{border-color:var(--fire1);color:var(--fire1)}
+    .modal-body{padding:16px 20px 0}
+
+    /* ── ADMIN ── */
+    .admin-lock{text-align:center;padding:36px 20px}
+    .admin-lock .li{font-size:48px;margin-bottom:12px}
+    .admin-lock h2{font-family:var(--fd);font-size:26px;color:var(--cream);margin-bottom:6px}
+    .admin-lock p{font-size:13px;color:var(--tx2);margin-bottom:22px;font-weight:500}
+    .admin-sec{margin-bottom:24px}
+    .admin-sec>h3{font-family:var(--fd);font-size:17px;font-weight:900;color:var(--cream);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px}
+    .admin-tabs{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none}
+    .admin-tabs::-webkit-scrollbar{display:none}
+    .atab{flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--bd);color:var(--tx3);background:var(--bg3);transition:all .15s;font-family:var(--fb)}
+    .atab.on{border-color:var(--fire3);color:var(--fire3);background:rgba(255,170,0,.08)}
+    .prod-list{display:flex;flex-direction:column;gap:8px}
+    .prod-item{background:var(--bg3);border:1px solid var(--bd);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px}
+    .prod-item .pe{font-size:22px;flex-shrink:0}
+    .prod-item .pi2{flex:1;min-width:0}
+    .prod-item .pn2{font-size:13px;font-weight:700;color:var(--cream)}
+    .prod-item .ps{font-size:11px;color:var(--tx2);margin-top:2px;font-weight:500}
+    .prod-item .pr{display:flex;align-items:center;gap:6px;flex-shrink:0}
+    .prod-actions{display:flex;gap:6px;align-items:center}
+    .price-chip{background:var(--bg4);border:1px solid var(--bd2);border-radius:8px;padding:4px 10px;color:var(--fire3);font-family:var(--fd);font-size:16px;font-weight:900;width:68px;text-align:center;outline:none}
+    .price-chip:focus{border-color:var(--fire3)}
+    .add-form{background:var(--bg3);border:1px solid var(--bd2);border-radius:12px;padding:14px;margin-top:12px}
+    .add-form h4{font-size:13px;font-weight:800;color:var(--fire3);margin-bottom:12px;letter-spacing:.5px;text-transform:uppercase}
+    .emoji-picker{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+    .ep{font-size:22px;cursor:pointer;padding:4px 6px;border-radius:8px;border:1.5px solid transparent;transition:all .15px}
+    .ep.sel{border-color:var(--fire3);background:rgba(255,170,0,.1)}
+    .ep:hover{background:var(--bg4)}
+    .toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+    .toggle input{opacity:0;width:0;height:0;position:absolute}
+    .toggle-slider{position:absolute;inset:0;background:var(--bg4);border-radius:12px;cursor:pointer;transition:background .2s;border:1px solid var(--bd2)}
+    .toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:2px;top:2px;background:#555;border-radius:50%;transition:all .2s}
+    .toggle input:checked + .toggle-slider{background:var(--green);border-color:var(--green)}
+    .toggle input:checked + .toggle-slider::before{transform:translateX(20px);background:#fff}
+    .color-row{display:flex;gap:12px;flex-wrap:wrap}
+    .color-swatch{display:flex;flex-direction:column;align-items:center;gap:6px}
+    .color-swatch label{font-size:10px;color:var(--tx3);font-weight:700;text-align:center;letter-spacing:.5px}
+    .color-swatch input[type=color]{width:52px;height:52px;border:2px solid var(--bd2);border-radius:10px;cursor:pointer;background:none;padding:2px;-webkit-appearance:none}
+    .color-swatch input[type=color]::-webkit-color-swatch-wrapper{padding:0;border-radius:8px}
+    .color-swatch input[type=color]::-webkit-color-swatch{border:none;border-radius:7px}
+
+    /* ── REGISTRATIONS TABLE in admin ── */
+    .reg-table{display:flex;flex-direction:column;gap:8px}
+    .reg-row{background:var(--bg3);border:1px solid var(--bd);border-radius:10px;padding:12px 14px}
+    .reg-row-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+    .reg-row-name{font-size:14px;font-weight:700;color:var(--cream)}
+    .reg-row-code{font-family:var(--fd);font-size:13px;color:var(--fire3);font-weight:900;letter-spacing:1px;background:rgba(255,170,0,.1);padding:3px 8px;border-radius:6px}
+    .reg-row-meta{font-size:11px;color:var(--tx3);margin-top:3px;font-weight:500}
+    .reg-row-used{font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;flex-shrink:0}
+    .reg-used-yes{background:rgba(77,170,87,.15);color:var(--green);border:1px solid rgba(77,170,87,.3)}
+    .reg-used-no{background:rgba(255,170,0,.1);color:var(--fire3);border:1px solid rgba(255,170,0,.3)}
+    .reg-stats-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+    .reg-stat{background:var(--bg3);border:1px solid var(--bd);border-radius:10px;padding:12px 16px;flex:1;min-width:80px;text-align:center}
+    .reg-stat .rsv{font-family:var(--fd);font-size:28px;font-weight:900;color:var(--fire3)}
+    .reg-stat .rsl{font-size:10px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+
+    /* ── DRINKS ── */
+    .drinks-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;padding:14px 20px 0}
+    .dk{background:var(--bg2);border:1.5px solid var(--bd);border-radius:var(--r);padding:16px 12px;cursor:pointer;transition:all .2s;text-align:center;position:relative;overflow:hidden}
+    .dk:active{transform:scale(.95)}
+    .dk.sel{border-color:#00bcd4;box-shadow:0 0 0 3px rgba(0,188,212,.15);background:rgba(0,188,212,.06)}
+    .dk .chk{background:linear-gradient(135deg,#00acc1,#00bcd4)}
+    .dk .ce{font-size:28px;margin-bottom:8px}
+    .dk .cn{font-size:13px;font-weight:700;color:var(--cream);line-height:1.3}
+    .dk .cd{font-size:11px;color:var(--tx2);margin-top:3px}
+    .dk .cx{font-size:13px;color:#00e5ff;font-weight:800;margin-top:5px;font-family:var(--fd)}
+    .dk-qty{display:flex;align-items:center;gap:8px;justify-content:center;margin-top:8px}
+    .dk-qty button{background:rgba(0,188,212,.15);border:1px solid rgba(0,188,212,.3);color:#00e5ff;border-radius:50%;width:26px;height:26px;font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-family:var(--fb);line-height:1}
+    .dk-qty button:active{transform:scale(.9)}
+    .dk-qty span{font-family:var(--fd);font-size:18px;color:var(--cream);font-weight:900;min-width:20px;text-align:center}
+
+    /* ── SPECIAL + PROMOS ── */
+    .promo-list{display:flex;flex-direction:column;gap:10px;padding:14px 20px 0}
+    .promo-card{background:var(--bg2);border:1.5px solid var(--bd);border-radius:var(--r);padding:16px;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;cursor:pointer;transition:all .2s}
+    .promo-card:active{transform:scale(.98)}
+    .promo-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--fire1),var(--fire3))}
+    .promo-emoji{font-size:34px;flex-shrink:0}
+    .promo-info{flex:1}
+    .promo-title{font-family:var(--fd);font-size:16px;font-weight:900;color:var(--cream)}
+    .promo-desc{font-size:12px;color:var(--tx2);margin-top:3px;font-weight:500}
+    .promo-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+    .promo-price{font-family:var(--fd);font-size:22px;font-weight:900;color:var(--fire3)}
+    .promo-badge{background:linear-gradient(135deg,var(--fire1),var(--fire2));color:#fff;font-size:10px;font-weight:800;padding:3px 9px;border-radius:10px;white-space:nowrap;letter-spacing:.5px}
+
+    /* ── PROTEIN RULE HINT ── */
+    .protein-rule-hint{margin:10px 20px 0;padding:10px 14px;background:rgba(255,170,0,.07);border:1px solid rgba(255,170,0,.22);border-radius:10px;display:flex;align-items:center;gap:10px}
+    .protein-rule-hint .rh-icon{font-size:18px;flex-shrink:0}
+    .protein-rule-hint p{font-size:12px;color:var(--tx2);font-weight:600;line-height:1.4}
+    .protein-rule-hint strong{color:var(--fire3)}
+    .protein-counter{display:flex;align-items:center;justify-content:space-between;padding:10px 20px 0}
+    .pc-track{display:flex;gap:4px}
+    .pc-dot{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--bd2);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .2s}
+    .pc-dot.filled{background:linear-gradient(135deg,var(--fire1),var(--fire3));border-color:var(--fire3);color:#fff;font-weight:800;box-shadow:0 0 8px var(--gy)}
+    .pc-dot.extra{background:rgba(255,170,0,.15);border-color:rgba(255,170,0,.4);color:var(--fire3)}
+
+    /* ── TOAST ── */
+    .toast{position:fixed;bottom:calc(82px + var(--sb));left:50%;transform:translateX(-50%) translateY(20px);padding:11px 20px;border-radius:10px;font-size:14px;font-weight:700;z-index:999;transition:all .3s;opacity:0;pointer-events:none;white-space:nowrap;font-family:var(--fb)}
+    .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+    .toast.ok{background:rgba(20,60,20,.95);border:1px solid rgba(77,170,87,.5);color:var(--green)}
+    .toast.err{background:rgba(60,0,0,.95);border:1px solid rgba(255,34,0,.5);color:var(--fire1)}
+
+    .note{font-size:12px;color:var(--tx3);text-align:center;padding:8px 20px;line-height:1.5;font-weight:500}
+    .scr{animation:fadeUp .35s ease}.pt{padding-top:20px}
+    @keyframes dropIn{0%{transform:translateY(-40px) scale(.5);opacity:0}60%{transform:translateY(6px) scale(1.05)}100%{transform:translateY(0) scale(1);opacity:1}}
+    @media(min-width:500px){.cgrid{grid-template-columns:repeat(auto-fill,minmax(155px,1fr))}.egrid{grid-template-columns:repeat(auto-fill,minmax(155px,1fr))}}
+  </style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<script type="text/babel">
+const {useState,useEffect,useRef,useCallback}=React;
+
+const ADMIN_PW="Jalo281077";
+
+// ── MUNDIAL LAUNCH DATE ──
+const LAUNCH_DATE = new Date("2026-06-11T12:00:00-05:00"); // June 11, Panama time
+
+// ── DISCOUNT CONFIG ──
+const DISCOUNT_PCT = 30;
+const VIP_DISCOUNT_PCT = 50;
+const VIP_SLOTS = 10;
+const VIP_VALID_DAYS = 15;
+
+// ── JSONBIN CONFIG ──
+const JBIN_ID  = "6a1f8b2ada38895dfe7e9449";
+const JBIN_KEY = "$2a$10$0feF4id2Mz1r7wWSBkyYL.h2PbgxnNx5dqqxnxrQoptn7Tg1clgCO";
+const JBIN_URL = `https://api.jsonbin.io/v3/b/${JBIN_ID}`;
+
+/* ── DEFAULTS ── */
+const D={
+  sizes:[
+    {id:"muestra",    name:"Muestra",      vol:"",bkr:"🧪",price:8.99, badge:"PARA PROBAR",  active:true},
+    {id:"formula",    name:"Fórmula",      vol:"",bkr:"⚗️",price:11.99,badge:"+ POPULAR",    active:true},
+    {id:"experimento",name:"Experimento",  vol:"",bkr:"🔬",price:14.99,badge:"EL MÁXIMO",    active:true},
+  ],
+  proteins:[
+    {id:"pollo",   name:"Pollo Ahumado",    emoji:"🍗",extra:0,col:"so",active:true},
+    {id:"mechada", name:"Res Desmechada",   emoji:"🥩",extra:0,col:"sr",active:true},
+    {id:"molida",  name:"Carne Molida",     emoji:"🫕",extra:0,col:"sr",active:true},
+    {id:"pastor",  name:"Pastor",           emoji:"🌮",extra:0,col:"so",active:true},
+    {id:"chorizo", name:"Chorizo Criollo",  emoji:"🌭",extra:0,col:"sr",active:true},
+  ],
+  cheeses:[
+    {id:"blanco",  name:"Queso Blanco Fundido", emoji:"🤍",extra:0, col:"sy",active:true},
+    {id:"amarillo",name:"Queso Amarillo Fundido",emoji:"🧀",extra:0, col:"sy",active:true},
+    {id:"mixto",   name:"Mixto (Blanco + Amarillo)",emoji:"🫕",extra:0, col:"so",active:true},
+  ],
+  salsas:[
+    {id:"queso",  name:"Queso Fundido",   emoji:"🧀",heat:0,col:"sy",active:true},
+    {id:"spicy",  name:"Salsa Picante",   emoji:"🌶️",heat:3,col:"sr",active:true},
+    {id:"verde",  name:"Salsa Verde",     emoji:"💚",heat:1,col:"sg",active:true},
+    {id:"bbq",    name:"BBQ Ahumada",     emoji:"🔥",heat:2,col:"so",active:true},
+    {id:"ranch",  name:"Ranch Especial",  emoji:"🤍",heat:0,col:"so",active:true},
+  ],
+  bases:[
+    {id:"horneado",name:"Horneado",  emoji:"🟡",sub:"Clásico y crujiente",   col:"sy",active:true},
+    {id:"frito",   name:"Frito",     emoji:"🔥",sub:"Extra crujiente",        col:"sr",active:true},
+    {id:"integral",name:"Integral",  emoji:"🌾",sub:"Más saludable",          col:"sg",active:true},
+    {id:"mixto",   name:"Mixto",     emoji:"⚗️",sub:"Horneado + frito",       col:"so",active:true},
+  ],
+  toppings:[
+    {id:"pico",  name:"Pico de Gallo",   emoji:"🍅",premium:false,active:true},
+    {id:"maiz",  name:"Maíz",            emoji:"🌽",premium:false,active:true},
+    {id:"jal",   name:"Jalapeños",       emoji:"🌶️",premium:false,active:true},
+    {id:"oni",   name:"Cebolla Morada",  emoji:"🧅",premium:false,active:true},
+    {id:"cil",   name:"Cilantro",        emoji:"🌿",premium:false,active:true},
+    {id:"lech",  name:"Lechuga",         emoji:"🥬",premium:false,active:true},
+    {id:"tom",   name:"Tomate",          emoji:"🍅",premium:false,active:true},
+    {id:"frij",  name:"Frijoles Negros", emoji:"🫘",premium:true, extra:1.5,active:true},
+    {id:"chile", name:"Chile Dulce",     emoji:"🫑",premium:true, extra:1.5,active:true},
+    {id:"guac",  name:"Aguacate / Guac", emoji:"🥑",premium:true, extra:1.5,active:true},
+    {id:"src",   name:"Sour Cream",      emoji:"🥛",premium:true, extra:1.5,active:true},
+  ],
+  // Only Yappy + Cash per Arturo's decision
+  payments:[
+    {id:"yappy",icon:"💛",name:"Yappy",   desc:"Banco General",  link:"",active:true},
+    {id:"cash", icon:"💵",name:"Efectivo",desc:"En el truck",    link:"",active:true},
+  ],
+  sched:{dias:"Martes a Domingo",horario:"11:00 AM – 9:00 PM",nota:"Sigue nuestras redes para ubicación exacta"},
+  theme:{bg:"#1a0000",btn:"#ff6600",accent:"#ffaa00"},
+  settings:{wa:"50767658697",address:"Obarrio, Ciudad de Panamá"},
+  animCfg:{
+    orbSpeed:7, fireSpeed:3, scanSpeed:5,
+    orbOn:true, scanOn:true, grainOn:true, hexOn:true,
+    fadeUp:true, beakerGlow:true,
+  },
+  events:[
+    {id:"corp",name:"Almuerzo Corporativo",icon:"🏢",min:20,ppp:10,active:true},
+    {id:"bday",name:"Cumpleaños",          icon:"🎉",min:15,ppp:11,active:true},
+    {id:"fest",name:"Festival / Evento",   icon:"🎪",min:50,ppp:9, active:true},
+    {id:"priv",name:"Evento Privado",      icon:"✨",min:10,ppp:12,active:true},
+  ],
+  drinks:[
+    {id:"agua",    name:"Agua",        emoji:"💧",price:1,  desc:"Agua fría",            active:true},
+    {id:"cola",    name:"Refresco",    emoji:"🥤",price:2,  desc:"Pepsi / 7UP / Mirinda",active:true},
+    {id:"lemon",   name:"Limonada",    emoji:"🍋",price:3,  desc:"Natural con hielo",    active:true},
+    {id:"jarritos",name:"Jarritos",    emoji:"🫙",price:2.5,desc:"Tamarindo / Mandarina",active:true},
+    {id:"juice",   name:"Jugo Natural",emoji:"🍊",price:3.5,desc:"Naranja o Maracuyá",   active:true},
+    {id:"beer",    name:"Cerveza",     emoji:"🍺",price:3,  desc:"Balboa / Atlas / Panamá",active:true},
+  ],
+  special:{
+    sciName:"Catalizador Capsaicínico Supremo",
+    commonName:"Salsa Ultra Picante de Habanero",
+    desc:"La combinación perfecta de habanero, mango y especias secretas de laboratorio. Solo disponible este mes.",
+    badge:"🔥 EDICIÓN LIMITADA",
+    price:2,
+    active:true,
+    emoji:"🌋",
+  },
+  promos:[
+    {id:"combo1",title:"Combo Fórmula",   desc:"Fórmula + Refresco",          price:13.99,badge:"AHORRA $1",  emoji:"⚗️",active:true},
+    {id:"combo2",title:"2x1 Martes",      desc:"2 Muestras por el precio de 1",price:8.99,badge:"SOLO MARTES",emoji:"🔬",active:true},
+    {id:"combo3",title:"Experimento Full",desc:"Experimento + Bebida incluida",price:17.99,badge:"LO MEJOR",  emoji:"🧬",active:true},
+  ],
+  proteinRules:[
+    {sizeId:"muestra",    included:1,extraPrice:2},
+    {sizeId:"formula",    included:2,extraPrice:2},
+    {sizeId:"experimento",included:3,extraPrice:2},
+  ],
+};
+
+const DATA_VERSION="nacholab_v4_mundial";
+if(localStorage.getItem("nl_data_version")!==DATA_VERSION){
+  ["sizes","proteins","salsas","bases","toppings","payments","events","sched","theme","settings","drinks","special","promos","proteinRules","animCfg"]
+    .forEach(k=>localStorage.removeItem("nl5_"+k));
+  localStorage.setItem("nl_data_version",DATA_VERSION);
+}
+
+const LS={
+  get:(k,d)=>{try{const v=localStorage.getItem("nl5_"+k);return v?JSON.parse(v):d}catch{return d}},
+  set:(k,v)=>{try{localStorage.setItem("nl5_"+k,JSON.stringify(v))}catch{}}
+};
+
+// ── REGISTRATION STORE (JSONBin) ──
+const RegStore={
+  _headers:{
+    "Content-Type":"application/json",
+    "X-Master-Key": JBIN_KEY,
+    "X-Bin-Versioning":"false"
+  },
+
+  async fetchAll(){
+    try{
+      const r=await fetch(JBIN_URL+"/latest",{headers:{"X-Master-Key":JBIN_KEY}});
+      const j=await r.json();
+      return j.record?.registrations||[];
+    }catch{return[];}
+  },
+
+  async saveAll(regs){
+    await fetch(JBIN_URL,{
+      method:"PUT",
+      headers:this._headers,
+      body:JSON.stringify({registrations:regs})
+    });
+  },
+
+  async add(reg){
+    const all=await this.fetchAll();
+    const slot=all.length+1;
+    const isVip=slot<=VIP_SLOTS;
+    const validUntil=isVip
+      ? new Date(LAUNCH_DATE.getTime()+VIP_VALID_DAYS*86400000).toLocaleDateString("es-PA")
+      : null;
+    const entry={
+      ...reg,
+      slot,
+      tier: isVip?"VIP":"STANDARD",
+      discount: isVip?VIP_DISCOUNT_PCT:DISCOUNT_PCT,
+      validUntil,
+      ts: Date.now(),
+      used: false,
+      igVerified: false
+    };
+    all.push(entry);
+    await this.saveAll(all);
+    return entry;
+  },
+
+  async markUsed(code){
+    const all=await this.fetchAll();
+    const updated=all.map(r=>r.code===code.toUpperCase()?{...r,used:true}:r);
+    await this.saveAll(updated);
+  },
+
+  async findByCode(code){
+    const all=await this.fetchAll();
+    return all.find(r=>r.code===code.toUpperCase());
+  },
+
+  async findByPhone(phone){
+    const all=await this.fetchAll();
+    return all.find(r=>r.phone===phone.replace(/\D/g,""));
+  },
+
+  async countRegistrations(){
+    const all=await this.fetchAll();
+    return all.length;
+  },
+
+  generateCode(name,isVip){
+    const prefix=isVip?"NL-VIP":"NL";
+    const tag=name.slice(0,2).toUpperCase().replace(/[^A-Z]/g,"X");
+    const num=Math.floor(1000+Math.random()*9000);
+    return isVip?`${prefix}-${tag}${num}`:`${prefix}-${tag}${num}`;
+  }
+};
+
+/* ── THEME ENGINE ── */
+function hexToRgb(h){const s=h.replace("#","");return[parseInt(s.slice(0,2),16),parseInt(s.slice(2,4),16),parseInt(s.slice(4,6),16)]}
+function rgbToHex(r,g,b){return"#"+[r,g,b].map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,"0")).join("")}
+function lighten(h,p){const[r,g,b]=hexToRgb(h);return rgbToHex(r+p,g+p,b+p)}
+function blend(a,b,t){const[ar,ag,ab]=hexToRgb(a);const[br,bg,bb]=hexToRgb(b);return rgbToHex(ar+(br-ar)*t,ag+(bg-ag)*t,ab+(bb-ab)*t)}
+function alpha(h,a){const[r,g,b]=hexToRgb(h);return`rgba(${r},${g},${b},${a})`}
+function applyTheme(t){
+  const s=document.documentElement.style;
+  s.setProperty("--bg",t.bg);s.setProperty("--bg2",lighten(t.bg,7));
+  s.setProperty("--bg3",lighten(t.bg,13));s.setProperty("--bg4",lighten(t.bg,20));
+  s.setProperty("--fire1",t.btn);s.setProperty("--fire2",blend(t.btn,t.accent,.5));
+  s.setProperty("--fire3",t.accent);s.setProperty("--fire4",lighten(t.accent,22));
+  s.setProperty("--gr",alpha(t.btn,.28));s.setProperty("--go",alpha(t.accent,.2));
+  s.setProperty("--gy",alpha(t.accent,.18));s.setProperty("--bd",alpha(t.btn,.14));
+  s.setProperty("--bd2",alpha(t.accent,.28));
+}
+function applyAnimCfg(a){
+  if(!a)return;
+  const s=document.documentElement.style;
+  s.setProperty("--orb-speed",(a.orbSpeed||7)+"s");
+  s.setProperty("--fire-speed",(a.fireSpeed||3)+"s");
+  s.setProperty("--scan-speed",(a.scanSpeed||5)+"s");
+  s.setProperty("--orb-on",a.orbOn===false?"0":"1");
+  s.setProperty("--scan-on",a.scanOn===false?"0":"1");
+}
+
+/* ── COUNTDOWN HOOK ── */
+function useCountdown(target){
+  const [diff,setDiff]=useState(()=>Math.max(0,target-Date.now()));
+  useEffect(()=>{
+    const t=setInterval(()=>setDiff(Math.max(0,target-Date.now())),1000);
+    return()=>clearInterval(t);
+  },[target]);
+  const d=Math.floor(diff/86400000);
+  const h=Math.floor((diff%86400000)/3600000);
+  const m=Math.floor((diff%3600000)/60000);
+  const s=Math.floor((diff%60000)/1000);
+  return{d,h,m,s,done:diff===0};
+}
+
+/* ── HELPERS ── */
+const pc=(sz,prList,rules,tops=[])=>{
+  if(!sz)return 0;
+  const rule=rules?.find(r=>r.sizeId===sz.id)||{included:1,extraPrice:2};
+  const proteins=Array.isArray(prList)?prList:[prList].filter(Boolean);
+  const base=sz.price||12;
+  const extras=proteins.reduce((s,p)=>s+(p?.extra||0),0);
+  const overCount=Math.max(0,proteins.length-rule.included);
+  const premIncl=sz.id==="muestra"?0:sz.id==="formula"?1:2;
+  const premTops=(Array.isArray(tops)?tops:[]).filter(t=>t.premium);
+  const premExtra=Math.max(0,premTops.length-premIncl)*1.5;
+  return base+extras+(overCount*rule.extraPrice)+premExtra;
+};
+const applyDiscount=(total, pct)=>total*(1-pct/100);
+const makeWA=(num,msg)=>window.open(`https://wa.me/${num.replace(/\D/g,"")}?text=${encodeURIComponent(msg)}`,"_blank");
+const uid=()=>"id"+Date.now()+Math.random().toString(36).slice(2,6);
+const owMsg=(cart,pay,num,discCode,discAmt)=>[
+  `🌮 *PEDIDO — NACHO LAB*`,`━━━━━━━━━━━━━━━━`,
+  ...cart.map((it,i)=>{
+    if(it.type==="drink")return `🥤 Bebida: ${it.name} — $${it.price.toFixed(2)}`;
+    const prNames=Array.isArray(it.proteins)?it.proteins.map(p=>p.name).join(", "):it.protein?.name||"—";
+    return[`*Fórmula ${i+1} — ${it.size.name}*`,`🧪 Base: ${it.base.name}`,`🧀 Queso: ${it.cheese?.name||"—"}`,`🍗 Proteínas: ${prNames}`,`🌿 Toppings: ${it.toppings.map(t=>t.name).join(", ")||"Sin extras"}`,`🧀 Salsa: ${it.salsa.name}`,`💰 $${it.price.toFixed(2)}`].join("\n");
+  }),
+  `━━━━━━━━━━━━━━━━`,
+  discCode?`🎟️ Código de descuento: ${discCode} (−${DISCOUNT_PCT}%, −$${discAmt.toFixed(2)})`:"",
+  `*TOTAL: $${cart.reduce((s,i)=>s+i.price,0).toFixed(2)}${discCode?` → $${applyDiscount(cart.reduce((s,i)=>s+i.price,0),DISCOUNT_PCT).toFixed(2)} con descuento`:""} *`,
+  `💳 Pago: ${pay}`,`\n¡Gracias! Confirmamos en minutos 🙏`,
+].filter(Boolean).join("\n");
+const evMsg=(f,et,num)=>[
+  `🎪 *RESERVA — NACHO LAB*`,`━━━━━━━━━━━━━━━━`,
+  `🏷️ ${et.name}`,`📅 ${f.date}`,`⏰ ${f.time}`,`👥 ${f.guests} personas`,`📍 ${f.address}`,`👤 ${f.name} · 📞 ${f.phone}`,
+  f.notes?`📝 ${f.notes}`:"",`━━━━━━━━━━━━━━━━`,`*Estimado: $${(Number(f.guests)*et.ppp).toFixed(2)}*`,
+].filter(Boolean).join("\n");
+
+/* ── BEAKER SVG ── */
+function BeakerSVG({fill}){
+  const h=Math.round(fill*80);
+  const fillColor=fill>0?"url(#lgrad)":"transparent";
+  return(
+    <svg viewBox="0 0 90 130" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="lgrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#ffd700" stopOpacity=".9"/>
+          <stop offset="40%" stopColor="#ff6600" stopOpacity=".95"/>
+          <stop offset="100%" stopColor="#cc0000" stopOpacity="1"/>
+        </linearGradient>
+        <clipPath id="bclip">
+          <path d="M25 20 L10 100 Q10 118 45 118 Q80 118 80 100 L65 20 Z"/>
+        </clipPath>
+      </defs>
+      <path d="M25 20 L10 100 Q10 118 45 118 Q80 118 80 100 L65 20 Z" fill="rgba(255,255,255,.04)" stroke="rgba(255,150,50,.6)" strokeWidth="2"/>
+      <g clipPath="url(#bclip)">
+        <rect x="0" y={118-h} width="90" height={h} fill={fillColor} opacity=".85"/>
+        {fill>0&&<ellipse cx="45" cy={118-h} rx="35" ry="5" fill={fillColor} opacity=".6"/>}
+        {fill>0.2&&<circle cx="30" cy={118-h+10} r="3" fill="rgba(255,220,100,.3)"/>}
+        {fill>0.4&&<circle cx="55" cy={118-h+18} r="2" fill="rgba(255,200,80,.25)"/>}
+        {fill>0.6&&<circle cx="38" cy={118-h+28} r="4" fill="rgba(255,180,60,.2)"/>}
+      </g>
+      <rect x="25" y="8" width="40" height="14" rx="4" fill="rgba(255,255,255,.04)" stroke="rgba(255,150,50,.5)" strokeWidth="1.5"/>
+      <rect x="22" y="6" width="46" height="6" rx="3" fill="rgba(255,150,50,.4)"/>
+      <line x1="30" y1="25" x2="20" y2="105" stroke="rgba(255,255,255,.07)" strokeWidth="3" strokeLinecap="round"/>
+      <line x1="68" y1="80" x2="75" y2="80" stroke="rgba(255,150,50,.4)" strokeWidth="1"/>
+      <line x1="68" y1="95" x2="75" y2="95" stroke="rgba(255,150,50,.4)" strokeWidth="1"/>
+    </svg>
+  );
+}
+
+/* ── FORMULA LAB VISUALIZER ── */
+function FormulaLab({build,maxSteps,cartDrinks=[]}){
+  const layers=[];
+  if(build.size)    layers.push({label:"TAMAÑO",   emoji:build.size.bkr||"🧪",    name:build.size.name,   cls:"l-size",    badge:`$${build.size.price}`});
+  if(build.base)    layers.push({label:"BASE",      emoji:build.base.emoji,         name:build.base.name,   cls:"l-base",    badge:"base"});
+  if(build.proteins?.length>0) layers.push({label:"PROTEÍNA", emoji:build.proteins[0].emoji, name:build.proteins.map(p=>p.name).join(", "),cls:"l-protein",badge:`×${build.proteins.length}`});
+  if(build.toppings.length>0) layers.push({label:"TOPPINGS", emoji:"🌿", name:`${build.toppings.length} ingrediente${build.toppings.length!==1?"s":""}`,cls:"l-topping",badge:`×${build.toppings.length}`});
+  if(build.salsa)   layers.push({label:"SALSA",     emoji:build.salsa.emoji,        name:build.salsa.name,  cls:"l-salsa",   badge:"cataliz."});
+  if(cartDrinks.length>0) layers.push({label:"BEBIDAS", emoji:"🥤", name:`${cartDrinks.length} bebida${cartDrinks.length!==1?"s":""}`, cls:"l-base", badge:`$${cartDrinks.reduce((s,d)=>s+Number(d.price),0).toFixed(2)}`});
+  const fill=layers.length/maxSteps;
+  return(
+    <div className="formula-lab fu">
+      <div className="lab-container">
+        <div className="lab-title">🧬 Tu fórmula en construcción</div>
+        <div className="lab-inner">
+          <div className="beaker-wrap"><BeakerSVG fill={fill}/></div>
+          <div className="formula-layers">
+            {layers.length===0
+              ?<div className="formula-empty"><div className="ei">🧪</div><p>Selecciona ingredientes para llenar el matraz</p></div>
+              :layers.map((l,i)=>(
+                <div key={i} className={`flayer ${l.cls}`} style={{animationDelay:`${i*.06}s`}}>
+                  <span className="fl-emoji">{l.emoji}</span>
+                  <span className="fl-name">{l.name}</span>
+                  <span className="fl-badge">{l.badge}</span>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+        <div className="formula-progress">
+          <div className="formula-progress-fill" style={{width:`${Math.round(fill*100)}%`}}/>
+        </div>
+        <div style={{display:"flex",justifyContent:"space-between",marginTop:6}}>
+          <span style={{fontSize:11,color:"var(--tx3)",fontWeight:600}}>{layers.length} / {maxSteps} ingredientes</span>
+          <span style={{fontSize:11,color:fill>=1?"var(--green)":"var(--fire3)",fontWeight:700}}>
+            {fill>=1?"✅ FÓRMULA COMPLETA":"⚗️ Completa la fórmula"}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── COUNTDOWN STRIP COMPONENT ── */
+function CountdownStrip({registeredCode}){
+  const {d,h,m,s,done}=useCountdown(LAUNCH_DATE.getTime());
+  if(done)return(
+    <div className="countdown-strip" style={{justifyContent:"center"}}>
+      <span style={{fontSize:20,marginRight:8}}>⚽</span>
+      <span style={{fontFamily:"var(--fd)",fontSize:15,fontWeight:900,color:"var(--fire3)"}}>¡EL MUNDIAL ARRANCÓ — NACHO LAB ESTÁ ABIERTO!</span>
+      <span style={{fontSize:20,marginLeft:8}}>🌮</span>
+    </div>
+  );
+  return(
+    <div className="countdown-strip">
+      <div className="cd-left">
+        <div>
+          <div className="cd-label">⚽ Mundial 2026</div>
+          <div className="cd-event">Inauguración: 11 Jun</div>
+        </div>
+      </div>
+      <div className="cd-units">
+        <div className="cd-unit"><div className="cd-num">{String(d).padStart(2,"0")}</div><div className="cd-lbl">días</div></div>
+        <div className="cd-sep">:</div>
+        <div className="cd-unit"><div className="cd-num">{String(h).padStart(2,"0")}</div><div className="cd-lbl">hrs</div></div>
+        <div className="cd-sep">:</div>
+        <div className="cd-unit"><div className="cd-num">{String(m).padStart(2,"0")}</div><div className="cd-lbl">min</div></div>
+        <div className="cd-sep">:</div>
+        <div className="cd-unit"><div className="cd-num" style={{fontSize:16}}>{String(s).padStart(2,"0")}</div><div className="cd-lbl">seg</div></div>
+      </div>
+      {!registeredCode&&<div className="cd-disc">
+        <div className="cd-disc-pct">{DISCOUNT_PCT}%</div>
+        <div className="cd-disc-txt">descuento<br/>al registrarte</div>
+      </div>}
+      {registeredCode&&<div className="cd-disc" style={{background:"rgba(77,170,87,.1)",border:"1px solid rgba(77,170,87,.3)"}}>
+        <span style={{fontSize:16}}>✅</span>
+        <div className="cd-disc-txt" style={{color:"var(--green)"}}>Registrado<br/>{registeredCode}</div>
+      </div>}
+    </div>
+  );
+}
+
+/* ── REGISTRATION SCREEN ── */
+function RegistrationScreen({onClose,onSuccess,toast$}){
+  const [step,setStep]=useState("form");
+  const [name,setName]=useState("");
+  const [phone,setPhone]=useState("");
+  const [igHandle,setIgHandle]=useState("");
+  const [loading,setLoading]=useState(false);
+  const [regData,setRegData]=useState(null);
+  const [vipSlotsLeft,setVipSlotsLeft]=useState(null);
+
+  useEffect(()=>{
+    RegStore.fetchAll().then(all=>{
+      setVipSlotsLeft(Math.max(0,VIP_SLOTS-all.length));
+    }).catch(()=>setVipSlotsLeft(VIP_SLOTS));
+  },[]);
+
+  const handleSubmit=async()=>{
+    if(!name.trim()||!phone.trim()){toast$("⚠️ Nombre y teléfono requeridos","err");return;}
+    if(phone.replace(/\D/g,"").length<7){toast$("⚠️ Teléfono inválido","err");return;}
+    setLoading(true);
+    try{
+      const existing=await RegStore.findByPhone(phone);
+      if(existing){
+        setRegData(existing);
+        setStep("success");
+        onSuccess&&onSuccess(existing.code,existing.discount);
+        setLoading(false);
+        return;
+      }
+      const all=await RegStore.fetchAll();
+      const slot=all.length+1;
+      const isVip=slot<=VIP_SLOTS;
+      const code=RegStore.generateCode(name,isVip);
+      const reg=await RegStore.add({name:name.trim(),phone:phone.replace(/\D/g,""),ig:igHandle.trim(),code});
+      setRegData(reg);
+      setVipSlotsLeft(Math.max(0,VIP_SLOTS-slot));
+      setStep("success");
+      onSuccess&&onSuccess(reg.code,reg.discount);
+    }catch(err){
+      toast$("❌ Error de conexión, intenta de nuevo","err");
+    }
+    setLoading(false);
+  };
+
+  const copyCode=()=>{
+    if(!regData)return;
+    navigator.clipboard?.writeText(regData.code)
+      .then(()=>toast$("✅ Código copiado!"))
+      .catch(()=>toast$("Código: "+regData.code));
+  };
+
+  const {d,h,m,s}=useCountdown(LAUNCH_DATE.getTime());
+  const isVip=regData?.tier==="VIP";
+  const discPct=regData?.discount||DISCOUNT_PCT;
+
+  return(
+    <div className="reg-screen">
+      <div style={{position:"relative"}}>
+        <button className="reg-close" onClick={onClose}>✕</button>
+        <div className="reg-inner">
+          {step==="form"&&(<>
+            <div className="reg-badge fu">🌶️ Lanzamiento Mundial 2026</div>
+            <div className="reg-title fu1">
+              <span className="reg-t1">REGÍSTRATE</span>
+              <span className="reg-t2">Y GANA</span>
+            </div>
+            {vipSlotsLeft!==null&&vipSlotsLeft>0&&(
+              <div style={{background:"linear-gradient(135deg,rgba(255,170,0,.12),rgba(255,34,0,.08))",border:"1.5px solid rgba(255,170,0,.4)",borderRadius:12,padding:"12px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:10}} className="fu">
+                <span style={{fontSize:28}}>⭐</span>
+                <div>
+                  <div style={{fontFamily:"var(--fd)",fontSize:15,fontWeight:900,color:"var(--fire3)"}}>¡Solo quedan {vipSlotsLeft} cupos VIP!</div>
+                  <div style={{fontSize:12,color:"var(--tx2)",fontWeight:600,marginTop:2}}>Los primeros {VIP_SLOTS} que compartan en Instagram reciben <strong style={{color:"var(--cream)"}}>50% OFF</strong> por {VIP_VALID_DAYS} días</div>
+                </div>
+              </div>
+            )}
+            {vipSlotsLeft===0&&(
+              <div style={{background:"rgba(255,34,0,.07)",border:"1px solid rgba(255,34,0,.2)",borderRadius:12,padding:"10px 16px",marginBottom:16,fontSize:12,color:"var(--tx2)",fontWeight:600}} className="fu">
+                🎟️ Cupos VIP agotados — aún obtienes <strong style={{color:"var(--fire3)"}}>{DISCOUNT_PCT}% OFF</strong> en tu primera orden
+              </div>
+            )}
+            <div className="reg-benefits fu2">
+              <div className="reg-benefit"><span className="rb-icon">🎟️</span><span><strong>{DISCOUNT_PCT}% OFF</strong> garantizado en tu primera orden</span></div>
+              <div className="reg-benefit"><span className="rb-icon">⭐</span><span>Si eres de los primeros {VIP_SLOTS} y compartís en IG: <strong style={{color:"var(--fire3)"}}>50% OFF por {VIP_VALID_DAYS} días</strong></span></div>
+              <div className="reg-benefit"><span className="rb-icon">⚡</span><span><strong>Acceso prioritario</strong> el día de apertura</span></div>
+              <div className="reg-benefit"><span className="rb-icon">⚽</span><span>Especiales exclusivos durante el <strong>Mundial</strong></span></div>
+            </div>
+            <div className="reg-form fu3">
+              <div className="ig"><label>Tu nombre *</label><input placeholder="¿Cómo te llamamos?" value={name} onChange={e=>setName(e.target.value)}/></div>
+              <div className="ig"><label>WhatsApp / Teléfono *</label><input placeholder="+507 6000-0000" type="tel" value={phone} onChange={e=>setPhone(e.target.value)}/></div>
+              <div className="ig"><label>Instagram (opcional)</label><input placeholder="@tu_usuario" value={igHandle} onChange={e=>setIgHandle(e.target.value)}/></div>
+              <button className="btn b-fire bfull" style={{padding:"16px",fontSize:16,marginTop:4}} onClick={handleSubmit} disabled={loading}>
+                {loading?<><span style={{animation:"spin 1s linear infinite",display:"inline-block"}}>⚗️</span> Guardando tu registro...</>:`🔥 Registrarme ${vipSlotsLeft>0?"y optar al 50% VIP":"con 30% OFF"}`}
+              </button>
+              <p className="note" style={{marginTop:8}}>Sin spam · Solo te contactamos el día de apertura · Datos seguros</p>
+            </div>
+          </>)}
+
+          {step==="success"&&regData&&(<div style={{animation:"fadeUp .4s ease"}}>
+            {isVip?(
+              <div style={{textAlign:"center",marginBottom:20}}>
+                <div style={{fontSize:52,marginBottom:8}}>⭐🎉</div>
+                <div style={{fontFamily:"var(--fd)",fontSize:26,fontWeight:900,lineHeight:1.1,marginBottom:8}}>
+                  <span style={{color:"var(--cream)"}}>¡Eres VIP #{regData.slot},</span><br/>
+                  <span style={{background:"linear-gradient(90deg,var(--fire3),var(--fire4))",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>{name||"crack"}!</span>
+                </div>
+                <div style={{background:"linear-gradient(135deg,rgba(255,170,0,.12),rgba(255,34,0,.08))",border:"1.5px solid rgba(255,170,0,.4)",borderRadius:12,padding:"12px 16px",marginBottom:12}}>
+                  <div style={{fontSize:13,color:"var(--fire3)",fontWeight:800,marginBottom:6}}>🎯 PARA ACTIVAR TU 50% VIP:</div>
+                  <div style={{fontSize:12,color:"var(--tx2)",fontWeight:600,lineHeight:1.8}}>
+                    1. Comparte esta pantalla en tus Instagram Stories<br/>
+                    2. Etiqueta <strong style={{color:"var(--cream)"}}>@nacholab.pty</strong><br/>
+                    3. Mándanos el screenshot por WhatsApp<br/>
+                    4. Activamos tu 50% al instante ✅
+                  </div>
+                </div>
+                <div style={{fontSize:11,color:"var(--tx3)",fontWeight:600}}>Válido {VIP_VALID_DAYS} días desde el 11 de junio · Expira: {regData.validUntil}</div>
+              </div>
+            ):(
+              <div style={{textAlign:"center",marginBottom:20}}>
+                <div style={{fontSize:52,marginBottom:8}}>🎉</div>
+                <div style={{fontFamily:"var(--fd)",fontSize:26,fontWeight:900,color:"var(--cream)",lineHeight:1.1,marginBottom:8}}>
+                  ¡Registrado,<br/><span style={{background:"linear-gradient(90deg,var(--fire1),var(--fire3))",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>{name||"crack"}!</span>
+                </div>
+                <p style={{fontSize:13,color:"var(--tx2)",fontWeight:500,lineHeight:1.6}}>
+                  Tu código de <strong style={{color:"var(--fire3)"}}>{discPct}% de descuento</strong> está listo para el 11 de junio.
+                </p>
+              </div>
+            )}
+            <div className="code-reveal">
+              <div className="code-reveal-label">{isVip?"⭐ Tu código VIP":"🎟️ Tu código exclusivo"}</div>
+              <div className="code-reveal-code" style={{color:isVip?"var(--fire4)":"var(--fire3)"}}>{regData.code}</div>
+              <div className="code-reveal-disc">
+                <strong>{discPct}% de descuento</strong> en tu primera orden
+                {isVip&&<span style={{color:"var(--green)",display:"block",fontSize:11,marginTop:3}}>⭐ VIP — válido {VIP_VALID_DAYS} días</span>}
+              </div>
+              <button className="code-copy-btn" onClick={copyCode}>📋 Copiar código</button>
+              <div className="code-note">✅ Válido desde el 11 de junio · 📱 Muéstralo al pedir por WhatsApp</div>
+            </div>
+            {isVip&&(
+              <button className="btn b-wa bfull" style={{marginTop:12,padding:"13px"}}
+                onClick={()=>makeWA("50767658697",`Hola! Soy ${regData.name}, cupo VIP #${regData.slot} 🌮 Aquí va mi screenshot de Instagram Stories para activar mi 50% OFF`)}>
+                📲 Enviar screenshot por WhatsApp → activar 50%
+              </button>
+            )}
+            <div className="reg-countdown" style={{marginTop:12}}>
+              <div className="reg-cd-icon">⚽</div>
+              <div className="reg-cd-text">
+                <div className="reg-cd-title">Apertura en {d}d {h}h {m}m</div>
+                <div className="reg-cd-sub">11 de junio · Inauguración del Mundial</div>
+              </div>
+            </div>
+            <button className="btn b-amber bfull" style={{marginTop:12,padding:"14px"}} onClick={onClose}>¡Nos vemos el 11! 🌮</button>
+          </div>)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+/* ── PRELAUNCH SCREEN (shown instead of order flow before launch) ── */
+function PreLaunchScreen({onRegister,registeredCode}){
+  const {d,h,m,s,done}=useCountdown(LAUNCH_DATE.getTime());
+  if(done)return null;
+  return(
+    <div className="prelaunch-screen fu">
+      <span className="prelaunch-emoji">⚽🌮</span>
+      <div className="prelaunch-title">
+        Abrimos el<br/>
+        <span style={{background:"linear-gradient(90deg,var(--fire1),var(--fire3))",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>11 de Junio</span>
+      </div>
+      <p className="prelaunch-sub">
+        Nacho Lab abre sus puertas el día de la inauguración del Mundial 2026. Regístrate hoy y obtén {DISCOUNT_PCT}% de descuento en tu primera orden.
+      </p>
+      <div className="prelaunch-cd">
+        {[{v:d,l:"Días"},{v:h,l:"Horas"},{v:m,l:"Min"},{v:s,l:"Seg"}].map(({v,l})=>(
+          <div key={l} className="pcd-unit">
+            <div className="pcd-num">{String(v).padStart(2,"0")}</div>
+            <div className="pcd-lbl">{l}</div>
+          </div>
+        ))}
+      </div>
+
+      {registeredCode?(
+        <div style={{background:"rgba(77,170,87,.08)",border:"1.5px solid rgba(77,170,87,.3)",borderRadius:"var(--r)",padding:"20px",textAlign:"center",marginBottom:20}}>
+          <div style={{fontSize:32,marginBottom:8}}>✅</div>
+          <div style={{fontFamily:"var(--fd)",fontSize:16,fontWeight:900,color:"var(--green)",marginBottom:4}}>¡Ya estás registrado!</div>
+          <div style={{fontFamily:"var(--fd)",fontSize:28,fontWeight:900,color:"var(--fire3)",letterSpacing:2,margin:"8px 0"}}>{registeredCode}</div>
+          <div style={{fontSize:12,color:"var(--tx3)",fontWeight:600}}>{DISCOUNT_PCT}% de descuento esperándote el 11 de junio</div>
+        </div>
+      ):(
+        <button className="btn b-fire" style={{fontSize:16,padding:"15px 32px",marginBottom:20,width:"100%",maxWidth:320}} onClick={onRegister}>
+          🎟️ Registrarme y obtener {DISCOUNT_PCT}% OFF
+        </button>
+      )}
+
+      <div style={{background:"var(--bg2)",border:"1px solid var(--bd)",borderRadius:12,padding:"16px 20px",width:"100%",maxWidth:320}}>
+        <div style={{fontSize:11,fontWeight:800,color:"var(--tx3)",letterSpacing:"1.5px",textTransform:"uppercase",marginBottom:10}}>Mientras tanto:</div>
+        {[["🎪","Reserva tu evento corporativo"],["📲","Síguenos en redes sociales"],["🔔","Activa notificaciones en tu navegador"]].map(([icon,text])=>(
+          <div key={text} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0",borderBottom:"1px solid var(--bd)"}}>
+            <span style={{fontSize:18}}>{icon}</span>
+            <span style={{fontSize:12,color:"var(--tx2)",fontWeight:600}}>{text}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── EXPLOSION ── */
+function SmokeParticle({delay,startX,driftX,size,color,duration}){
+  return(
+    <div className="smoke-puff" style={{
+      width:size+"px",height:size+"px",
+      background:`radial-gradient(circle, ${color} 0%, transparent 70%)`,
+      left:"50%",bottom:"22%",
+      "--sx":startX+"px","--sdx":driftX+"px",
+      "--sy":"0px","--ss":(0.9+Math.random()*.8),
+      "--sr":(Math.random()*40-20)+"deg",
+      animationDuration:duration+"s",animationDelay:delay+"s",
+    }}/>
+  );
+}
+
+function Explosion({onDone}){
+  const [phase,setPhase]=useState(0);
+  const smokes=Array.from({length:28},(_,i)=>{
+    const foodColors=["rgba(255,60,0,.75)","rgba(255,120,0,.7)","rgba(255,190,0,.65)","rgba(255,240,200,.5)","rgba(255,255,255,.4)","rgba(255,80,20,.7)","rgba(255,150,30,.65)","rgba(230,230,230,.35)"];
+    return{delay:0.05+i*0.06+Math.random()*.12,startX:(Math.random()*80-40),driftX:(Math.random()*60-30),size:30+Math.random()*80,color:foodColors[i%foodColors.length],duration:1.4+Math.random()*.8};
+  });
+  const particles=Array.from({length:22},(_,i)=>{
+    const angle=(i/22)*360+Math.random()*16;
+    const dist=100+Math.random()*110;
+    const px=Math.cos(angle*Math.PI/180)*dist;
+    const py=Math.sin(angle*Math.PI/180)*dist-20;
+    const colors=["#ff2200","#ff6600","#ffaa00","#ffd700","#ff4422","#ffbb00","#ff3300","#ffdd00"];
+    return{px:px+"px",py:py+"px",color:colors[i%colors.length],size:5+Math.random()*9};
+  });
+  useEffect(()=>{
+    const t1=setTimeout(()=>setPhase(1),300);
+    const t2=setTimeout(()=>onDone(),4200);
+    return()=>{clearTimeout(t1);clearTimeout(t2);};
+  },[]);
+  return(
+    <div className="exp-overlay" onClick={onDone}>
+      <div className="exp-scene">
+        {phase>=1&&particles.map((p,i)=>(
+          <div key={i} className="particle" style={{position:"absolute",bottom:"26%",left:"50%",width:p.size+"px",height:p.size+"px",background:`radial-gradient(circle, ${p.color}, ${p.color}88)`,"--px":p.px,"--py":p.py,animationDelay:`${i*.03}s`,animationDuration:".75s",boxShadow:`0 0 ${p.size*1.5}px ${p.color}`,marginLeft:"-4px",marginBottom:"-4px"}}/>
+        ))}
+        {phase>=1&&smokes.map((s,i)=><SmokeParticle key={i} {...s}/>)}
+        <div className="exp-beaker">
+          <svg width="88" height="126" viewBox="0 0 90 130" xmlns="http://www.w3.org/2000/svg" className="exp-liquid">
+            <defs>
+              <linearGradient id="eliq" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#ffd700" stopOpacity=".95"/>
+                <stop offset="35%" stopColor="#ff8800" stopOpacity="1"/>
+                <stop offset="100%" stopColor="#cc0000" stopOpacity="1"/>
+              </linearGradient>
+              <clipPath id="eclip"><path d="M25 20 L10 100 Q10 118 45 118 Q80 118 80 100 L65 20 Z"/></clipPath>
+            </defs>
+            <path d="M25 20 L10 100 Q10 118 45 118 Q80 118 80 100 L65 20 Z" fill="rgba(255,255,255,.06)" stroke="rgba(255,170,50,.75)" strokeWidth="2"/>
+            <g clipPath="url(#eclip)">
+              <rect x="0" y="20" width="90" height="98" fill="url(#eliq)" opacity=".92"/>
+              <ellipse cx="45" cy="20" rx="34" ry="5" fill="#ffd700" opacity=".7"/>
+            </g>
+            <rect x="25" y="8" width="40" height="14" rx="4" fill="rgba(255,255,255,.06)" stroke="rgba(255,160,50,.65)" strokeWidth="1.5"/>
+            <rect x="22" y="6" width="46" height="5" rx="2.5" fill="rgba(255,160,50,.5)"/>
+          </svg>
+        </div>
+        {phase>=1&&(
+          <div className="exp-text" style={{marginBottom:"38%"}}>
+            <div className="exp-label">⚗️ Reacción completada</div>
+            <div className="exp-title"><span className="exp-t1">¡FÓRMULA</span><span className="exp-t2">LISTA!</span></div>
+            <div className="exp-body">Tu nacho está sintetizado.<br/>Solo falta el <strong style={{color:"#ffcc00"}}>combustible</strong> para iniciar la reacción.</div>
+            <div className="exp-cta"><div className="exp-cta-text">👇 Elige tu método de pago para iniciarlo</div><div className="exp-arrow">🔥</div></div>
+          </div>
+        )}
+        <button className="exp-skip">Toca para continuar</button>
+      </div>
+    </div>
+  );
+}
+
+/* ── CARD ── */
+function Card({item,sel,onSel,xtra,showH}){
+  const c=sel?(item.col||"so"):"";
+  if(item.active===false)return<div className="sc disabled"><div className="ce">{item.emoji}</div><div className="cn">{item.name}</div></div>;
+  return(
+    <div className={`sc ${c}`} onClick={()=>onSel(item)}>
+      <div className="chk">✓</div>
+      <div className="ce">{item.emoji}</div>
+      <div className="cn">{item.name}</div>
+      {item.sub&&<div className="cd">{item.sub}</div>}
+      {xtra&&item.extra>0&&<div className="cx">+${item.extra}</div>}
+      {showH&&<div className="heat">{[0,1,2,3].map(i=><div key={i} className={`hd${i<item.heat?" on":""}`}/>)}</div>}
+    </div>
+  );
+}
+
+function Toast({msg,type}){return<div className={`toast${msg?" show":""} ${type}`}>{msg}</div>;}
+
+/* ── DRINK SELECTOR ── */
+function DrinkSelector({drinks,cartDrinks,onAdd,onRemove}){
+  const active=drinks.filter(d=>d.active!==false);
+  return(
+    <div>
+      <div className="sh"><div className="st">🥤 <span style={{background:"linear-gradient(90deg,#00bcd4,#00e5ff)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>Bebidas</span></div><div className="ss">Añade una bebida a tu pedido</div></div>
+      <div className="drinks-grid">
+        {active.map(d=>{
+          const qty=cartDrinks.filter(x=>x.id===d.id).length;
+          return(
+            <div key={d.id} className={`dk${qty>0?" sel":""}`}>
+              {qty>0&&<div className="chk">✓</div>}
+              <div className="ce">{d.emoji}</div>
+              <div className="cn">{d.name}</div>
+              <div className="cd">{d.desc}</div>
+              <div className="cx">${Number(d.price).toFixed(2)}</div>
+              <div className="dk-qty">
+                <button onClick={()=>onRemove(d)}>−</button>
+                <span>{qty}</span>
+                <button onClick={()=>onAdd(d)}>+</button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ── SPECIAL CARD ── */
+function SpecialCard({special,onSpecial}){
+  if(!special?.active)return null;
+  return(
+    <div style={{margin:"14px 20px 0",borderRadius:"var(--r)",overflow:"hidden",position:"relative",background:"linear-gradient(135deg,rgba(120,0,60,.55),rgba(200,40,0,.4),rgba(255,130,0,.2))",border:"1.5px solid rgba(255,180,0,.45)"}}>
+      <div style={{background:"linear-gradient(90deg,rgba(255,34,0,.25),rgba(255,170,0,.15))",padding:"7px 14px",display:"flex",alignItems:"center",gap:7,borderBottom:"1px solid rgba(255,170,0,.2)"}}>
+        <span style={{fontSize:13}}>🧬</span>
+        <span style={{fontSize:10,fontWeight:800,color:"var(--fire4)",letterSpacing:"2px",textTransform:"uppercase"}}>Sustancia Especial del Mes</span>
+      </div>
+      <div style={{padding:"12px 14px",display:"flex",alignItems:"center",gap:12}}>
+        <div style={{fontSize:38,flexShrink:0,lineHeight:1}}>{special.emoji||"🌋"}</div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:10,color:"rgba(255,210,120,.6)",fontWeight:700,fontStyle:"italic",marginBottom:2}}>⚗️ {special.sciName}</div>
+          <div style={{fontFamily:"var(--fd)",fontSize:15,fontWeight:900,color:"var(--cream)",lineHeight:1.2}}>{special.commonName}</div>
+          <div style={{fontSize:11,color:"var(--tx2)",marginTop:3,fontWeight:500,lineHeight:1.4}}>{special.desc}</div>
+        </div>
+        <div style={{textAlign:"right",flexShrink:0,display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6}}>
+          <div style={{fontFamily:"var(--fd)",fontSize:22,fontWeight:900,color:"var(--fire3)",lineHeight:1}}>+${Number(special.price).toFixed(2)}</div>
+          <button className="btn b-fire" style={{fontSize:11,padding:"7px 13px",whiteSpace:"nowrap"}} onClick={()=>onSpecial&&onSpecial(special)}>Quiero este</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── PROMOS ROW ── */
+function PromosRow({promos,onPromo}){
+  const active=promos.filter(p=>p.active!==false);
+  if(!active.length)return null;
+  return(
+    <div style={{marginTop:14}}>
+      <div style={{padding:"0 20px",display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+        <div style={{display:"flex",alignItems:"center",gap:7}}>
+          <span style={{fontSize:15}}>🎯</span>
+          <span style={{fontFamily:"var(--fd)",fontSize:16,fontWeight:900,color:"var(--cream)"}}>Promociones</span>
+        </div>
+        <span style={{fontSize:11,color:"var(--tx3)",fontWeight:700}}>{active.length} disponible{active.length!==1?"s":""}</span>
+      </div>
+      <div style={{display:"flex",gap:10,padding:"0 20px",overflowX:"auto",scrollbarWidth:"none",paddingBottom:4}}>
+        {active.map(p=>(
+          <div key={p.id} onClick={()=>onPromo&&onPromo(p)} style={{flexShrink:0,width:160,background:"var(--bg2)",border:"1.5px solid var(--bd)",borderRadius:"var(--r)",padding:"13px 12px",cursor:"pointer",transition:"all .2s",position:"relative",overflow:"hidden"}}
+            onMouseEnter={e=>e.currentTarget.style.borderColor="var(--fire3)"}
+            onMouseLeave={e=>e.currentTarget.style.borderColor="var(--bd)"}
+          >
+            <div style={{position:"absolute",left:0,top:0,bottom:0,width:3,background:"linear-gradient(180deg,var(--fire1),var(--fire3))"}}/>
+            <div style={{fontSize:26,marginBottom:7,lineHeight:1}}>{p.emoji}</div>
+            <div style={{fontFamily:"var(--fd)",fontSize:13,fontWeight:900,color:"var(--cream)",lineHeight:1.2,marginBottom:3}}>{p.title}</div>
+            <div style={{fontSize:10,color:"var(--tx2)",fontWeight:500,lineHeight:1.4,marginBottom:8}}>{p.desc}</div>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+              <div style={{fontFamily:"var(--fd)",fontSize:20,fontWeight:900,color:"var(--fire3)"}}>${Number(p.price).toFixed(2)}</div>
+              {p.badge&&<div style={{background:"linear-gradient(135deg,var(--fire1),var(--fire2))",color:"#fff",fontSize:8,fontWeight:800,padding:"2px 7px",borderRadius:8,whiteSpace:"nowrap"}}>{p.badge}</div>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── PROTEIN RULE HINT ── */
+function ProteinRuleHint({size,selectedProteins,rule}){
+  if(!size||!rule)return null;
+  const total=selectedProteins.length;
+  const dots=Math.max(rule.included,total);
+  return(
+    <div>
+      <div className="protein-rule-hint">
+        <span className="rh-icon">🧬</span>
+        <p>
+          <strong>{size.name}</strong> incluye <strong>{rule.included} proteína{rule.included!==1?"s":""}</strong> sin costo.
+          {total>rule.included&&<> Pagando <strong>${((total-rule.included)*rule.extraPrice).toFixed(2)}</strong> extra.</>}
+          {total<rule.included&&<> Puedes elegir <strong>{rule.included-total} más</strong> sin cargo.</>}
+          {total===rule.included&&total>0&&<> ¡Incluidas! Más por <strong>+${rule.extraPrice}/c</strong>.</>}
+        </p>
+      </div>
+      <div className="protein-counter">
+        <div style={{fontSize:12,color:"var(--tx3)",fontWeight:700}}>{total} proteína{total!==1?"s":""} seleccionada{total!==1?"s":""}</div>
+        <div className="pc-track">
+          {Array.from({length:Math.max(dots,1)}).map((_,i)=>(
+            <div key={i} className={`pc-dot${i<total?(i<rule.included?" filled":" extra"):""}`}>
+              {i<total?<span>{i<rule.included?"✓":"+"}</span>:null}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── EMOJI PICKER ── */
+const EMOJIS=["🌮","🧪","⚗️","🔬","🌶️","🍗","🥩","🐷","🦐","🥦","🧀","🔥","💚","🤍","🟡","⚫","🌽","🍅","🧅","🥑","🫘","🌿","🥛","🍔","🌯","🥗","🍕","🫕","🧆","🥙","🫔","🌽","🥞","🍞","🧁","🎉","🏢","🎪","✨","⭐","💥","🎯","🧬","🦠","💎","🏆"];
+
+/* ── PRODUCT EDITOR ── */
+function ProductEditor({label,items,setItems,fields=[],canAddNew=true}){
+  const [form,setForm]=useState({name:"",emoji:"🌮",price:0,extra:0,sub:"",heat:0,ppp:10,min:10,vol:"",link:""});
+  const [showAdd,setShowAdd]=useState(false);
+  const save=(id,key,val)=>setItems(l=>l.map(x=>x.id===id?{...x,[key]:val}:x));
+  const del=(id)=>setItems(l=>l.filter(x=>x.id!==id));
+  const tog=(id)=>setItems(l=>l.map(x=>x.id===id?{...x,active:!x.active}:x));
+  const add=()=>{
+    if(!form.name.trim())return;
+    setItems(l=>[...l,{...form,id:uid(),col:"so",active:true}]);
+    setForm({name:"",emoji:"🌮",price:0,extra:0,sub:"",heat:0,ppp:10,min:10,vol:"",link:""});
+    setShowAdd(false);
+  };
+  return(
+    <div>
+      <div className="prod-list">
+        {items.map(item=>(
+          <div key={item.id} className="prod-item" style={{opacity:item.active===false?.5:1}}>
+            <div className="pe">{item.emoji}</div>
+            <div className="pi2">
+              <div className="pn2">{item.name}</div>
+              <div className="ps">{item.price!==undefined&&`$${item.price} `}{item.extra!==undefined&&item.extra>0&&`+$${item.extra} `}{item.vol&&item.vol+" "}{item.sub&&item.sub}</div>
+            </div>
+            <div className="prod-actions">
+              <label className="toggle"><input type="checkbox" checked={item.active!==false} onChange={()=>tog(item.id)}/><span className="toggle-slider"/></label>
+              {(item.price!==undefined||item.extra!==undefined||item.ppp!==undefined)&&(
+                <input className="price-chip" type="number" min="0"
+                  value={item.ppp!==undefined?item.ppp:item.price!==undefined?item.price:item.extra}
+                  onChange={e=>save(item.id,item.ppp!==undefined?"ppp":item.price!==undefined?"price":"extra",Number(e.target.value))}/>
+              )}
+              <button className="btn b-danger" style={{padding:"6px 10px",fontSize:13}} onClick={()=>del(item.id)}>✕</button>
+            </div>
+          </div>
+        ))}
+      </div>
+      {canAddNew&&(
+        <>
+          <button className="btn b-warn bfull" style={{marginTop:10,padding:"10px"}} onClick={()=>setShowAdd(!showAdd)}>
+            {showAdd?"Cancelar":"+ Agregar "+label}
+          </button>
+          {showAdd&&(
+            <div className="add-form">
+              <h4>Nuevo {label}</h4>
+              <div className="emoji-picker">{EMOJIS.map(e=><span key={e} className={`ep${form.emoji===e?" sel":""}`} onClick={()=>setForm(f=>({...f,emoji:e}))}>{e}</span>)}</div>
+              <div className="ig"><label>Nombre *</label><input placeholder={"Nombre del "+label} value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))}/></div>
+              {fields.includes("price")&&<div className="ig"><label>Precio base ($)</label><input type="number" min="0" value={form.price} onChange={e=>setForm(f=>({...f,price:Number(e.target.value)}))}/></div>}
+              {fields.includes("extra")&&<div className="ig"><label>Precio extra (+$)</label><input type="number" min="0" value={form.extra} onChange={e=>setForm(f=>({...f,extra:Number(e.target.value)}))}/></div>}
+              {fields.includes("sub")&&<div className="ig"><label>Descripción</label><input placeholder="Descripción corta" value={form.sub} onChange={e=>setForm(f=>({...f,sub:e.target.value}))}/></div>}
+              {fields.includes("vol")&&<div className="ig"><label>Volumen</label><input placeholder="120g" value={form.vol} onChange={e=>setForm(f=>({...f,vol:e.target.value}))}/></div>}
+              {fields.includes("heat")&&<div className="ig"><label>Picante (0-3)</label><input type="number" min="0" max="3" value={form.heat} onChange={e=>setForm(f=>({...f,heat:Number(e.target.value)}))}/></div>}
+              {fields.includes("ppp")&&<div className="ir">
+                <div className="ig"><label>Precio/persona</label><input type="number" min="0" value={form.ppp} onChange={e=>setForm(f=>({...f,ppp:Number(e.target.value)}))}/></div>
+                <div className="ig"><label>Mín. personas</label><input type="number" min="1" value={form.min} onChange={e=>setForm(f=>({...f,min:Number(e.target.value)}))}/></div>
+              </div>}
+              {fields.includes("link")&&<div className="ig"><label>Link de pago</label><input type="url" placeholder="https://..." value={form.link} onChange={e=>setForm(f=>({...f,link:e.target.value}))}/></div>}
+              <button className="btn b-amber bfull" onClick={add}>Agregar {label}</button>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ── ADMIN PANEL ── */
+function AdminPanel({onClose,toast$,onSaved}){
+  const [auth,setAuth]=useState(false);
+  const [pw,setPw]=useState("");
+  const [pwErr,setPwErr]=useState(false);
+  const [atab,setAtab]=useState("registrations");
+
+  const [sizes,setSizes]=useState(()=>LS.get("sizes",D.sizes));
+  const [proteins,setProteins]=useState(()=>LS.get("proteins",D.proteins));
+  const [salsas,setSalsas]=useState(()=>LS.get("salsas",D.salsas));
+  const [bases,setBases]=useState(()=>LS.get("bases",D.bases));
+  const [cheeses,setCheeses]=useState(()=>LS.get("cheeses",D.cheeses));
+  const [toppings,setToppings]=useState(()=>LS.get("toppings",D.toppings));
+  const [payments,setPayments]=useState(()=>LS.get("payments",D.payments));
+  const [events,setEvents]=useState(()=>LS.get("events",D.events));
+  const [sched,setSched]=useState(()=>LS.get("sched",D.sched));
+  const [theme,setTheme]=useState(()=>LS.get("theme",D.theme));
+  const [settings,setSettings]=useState(()=>LS.get("settings",D.settings));
+  const [drinks,setDrinks]=useState(()=>LS.get("drinks",D.drinks));
+  const [special,setSpecial]=useState(()=>LS.get("special",D.special));
+  const [promos,setPromos]=useState(()=>LS.get("promos",D.promos));
+  const [proteinRules,setProteinRules]=useState(()=>LS.get("proteinRules",D.proteinRules));
+  const [regs,setRegs]=useState([]);
+  useEffect(()=>{RegStore.fetchAll().then(setRegs).catch(()=>{});},[]);
+
+  const login=()=>{if(pw===ADMIN_PW){setAuth(true);setPwErr(false);}else{setPwErr(true);setTimeout(()=>setPwErr(false),2000);}};
+
+  const saveAll=()=>{
+    ["sizes","proteins","salsas","bases","toppings","cheeses","payments","events","sched","theme","settings","drinks","special","promos","proteinRules"]
+      .forEach(k=>LS.set(k,eval(k)));
+    applyTheme(theme);
+    onSaved({sched,settings,payments,drinks,special,promos,proteinRules,cheeses});
+    toast$("✅ ¡Cambios guardados!");
+  };
+
+  const exportRegs=()=>{
+    const csv=["Nombre,Teléfono,Email,Código,Fecha,Usado",...regs.map(r=>`${r.name},${r.phone},${r.email||""},${r.code},${new Date(r.ts).toLocaleDateString("es-PA")},${r.used?"Sí":"No"}`)].join("\n");
+    const blob=new Blob([csv],{type:"text/csv"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");a.href=url;a.download="nacholab_registros.csv";a.click();
+  };
+
+  const TABS=[
+    {id:"registrations",label:"🎟️ Registros"},
+    {id:"general",     label:"⚙️ General"},
+    {id:"sizes",       label:"⚗️ Tamaños"},
+    {id:"proteins",    label:"🍗 Proteínas"},
+    {id:"bases",       label:"🌽 Bases"},
+    {id:"toppings",    label:"🌿 Toppings"},
+    {id:"salsas",      label:"🧪 Salsas"},
+    {id:"drinks",      label:"🥤 Bebidas"},
+    {id:"payments",    label:"💳 Pagos"},
+    {id:"events",      label:"🎪 Eventos"},
+    {id:"promos",      label:"🎯 Promos"},
+    {id:"design",      label:"🎨 Diseño"},
+  ];
+
+  const usedCount=regs.filter(r=>r.used).length;
+
+  return(
+    <div className="modal-bg" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal">
+        <div className="modal-handle"/>
+        <div className="modal-hdr">
+          <div className="modal-title"><span className="fi">ADMIN</span> <span className="gw">PANEL</span></div>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body">
+        {!auth?(
+          <div className="admin-lock">
+            <div className="li">🔐</div>
+            <h2>Acceso Restringido</h2>
+            <p>Solo personal autorizado de Nacho Lab</p>
+            <div className="ig">
+              <label>Contraseña</label>
+              <input type="password" placeholder="••••••••••" value={pw}
+                onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==="Enter"&&login()}
+                style={pwErr?{borderColor:"var(--fire1)"}:{}}/>
+              {pwErr&&<p style={{color:"var(--fire1)",fontSize:12,marginTop:6,fontWeight:700}}>❌ Contraseña incorrecta</p>}
+            </div>
+            <button className="btn b-fire bfull" onClick={login}>Entrar al panel</button>
+          </div>
+        ):(
+          <>
+          <div className="admin-tabs">
+            {TABS.map(t=><button key={t.id} className={`atab${atab===t.id?" on":""}`} onClick={()=>setAtab(t.id)}>{t.label}</button>)}
+          </div>
+
+          {/* ── REGISTRATIONS ── */}
+          {atab==="registrations"&&<div className="admin-sec">
+            <h3>🎟️ Registros Pre-Lanzamiento</h3>
+            <div className="reg-stats-row">
+              <div className="reg-stat"><div className="rsv">{regs.length}</div><div className="rsl">Total</div></div>
+              <div className="reg-stat"><div className="rsv" style={{color:"var(--fire4)"}}>{regs.filter(r=>r.tier==="VIP").length}/{VIP_SLOTS}</div><div className="rsl">VIPs</div></div>
+              <div className="reg-stat"><div className="rsv" style={{color:"var(--green)"}}>{usedCount}</div><div className="rsl">Usados</div></div>
+              <div className="reg-stat"><div className="rsv" style={{color:"var(--fire1)"}}>{regs.length-usedCount}</div><div className="rsl">Pendientes</div></div>
+            </div>
+            {regs.length>0&&<button className="btn b-ghost bfull" style={{marginBottom:12}} onClick={exportRegs}>📥 Exportar CSV</button>}
+            {regs.length===0?(
+              <div style={{textAlign:"center",padding:"32px 0",color:"var(--tx3)"}}>
+                <div style={{fontSize:32,marginBottom:8}}>📋</div>
+                <div style={{fontSize:13,fontWeight:600}}>Aún no hay registros</div>
+                <div style={{fontSize:11,marginTop:4}}>Los registros aparecen aquí cuando los clientes se registran en la app</div>
+              </div>
+            ):(
+              <div className="reg-table">
+                {[...regs].reverse().map(r=>(
+                  <div key={r.id} className="reg-row">
+                    <div className="reg-row-top">
+                      <div>
+                        <div className="reg-row-name">
+                          {r.tier==="VIP"&&<span style={{background:"linear-gradient(135deg,var(--fire3),var(--fire4))",color:"#1a0000",fontSize:9,fontWeight:900,padding:"2px 6px",borderRadius:5,marginRight:6,letterSpacing:.5}}>⭐ VIP #{r.slot}</span>}
+                          {r.name}
+                        </div>
+                        <div className="reg-row-meta">📱 {r.phone}{r.ig?` · 📸 ${r.ig}`:""} · 📅 {new Date(r.ts).toLocaleDateString("es-PA")}</div>
+                        {r.tier==="VIP"&&r.validUntil&&<div style={{fontSize:10,color:"var(--fire3)",fontWeight:700,marginTop:3}}>⏱ Válido hasta: {r.validUntil}</div>}
+                      </div>
+                      <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4}}>
+                        <div className="reg-row-code">{r.code}</div>
+                        <div style={{fontSize:10,fontWeight:800,color:r.tier==="VIP"?"var(--fire4)":"var(--fire3)",marginTop:3}}>{r.discount||DISCOUNT_PCT}% OFF</div>
+                        <div className={`reg-row-used ${r.used?"reg-used-yes":"reg-used-no"}`}>{r.used?"Usado":"Pendiente"}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div style={{marginTop:16,padding:"12px 16px",background:"rgba(255,170,0,.06)",border:"1px solid rgba(255,170,0,.15)",borderRadius:10,fontSize:12,color:"var(--tx2)",fontWeight:600,lineHeight:1.6}}>
+              💡 <strong style={{color:"var(--fire3)"}}>Cómo funciona:</strong> cuando un cliente usa su código en WhatsApp, tú aplicas el descuento manualmente y lo marcas como usado. En una próxima versión esto se puede automatizar.
+            </div>
+          </div>}
+
+          {/* ── GENERAL ── */}
+          {atab==="general"&&<div className="admin-sec">
+            <h3>⚙️ Configuración General</h3>
+            <div className="ig"><label>WhatsApp</label><input value={settings.wa} onChange={e=>setSettings(s=>({...s,wa:e.target.value}))}/></div>
+            <div className="ig"><label>Dirección / Zona</label><input value={settings.address} onChange={e=>setSettings(s=>({...s,address:e.target.value}))}/></div>
+            <div className="ig"><label>Días</label><input value={sched.dias} onChange={e=>setSched(s=>({...s,dias:e.target.value}))}/></div>
+            <div className="ig"><label>Horario</label><input value={sched.horario} onChange={e=>setSched(s=>({...s,horario:e.target.value}))}/></div>
+            <div className="ig"><label>Nota</label><input value={sched.nota} onChange={e=>setSched(s=>({...s,nota:e.target.value}))}/></div>
+          </div>}
+
+          {atab==="sizes"&&<div className="admin-sec"><h3>⚗️ Tamaños</h3><ProductEditor label="Tamaño" items={sizes} setItems={setSizes} fields={["price","vol"]}/></div>}
+          {atab==="bases"&&<div className="admin-sec"><h3>🌽 Bases</h3><ProductEditor label="Base" items={bases} setItems={setBases} fields={["sub"]}/></div>}
+          {atab==="proteins"&&<div className="admin-sec">
+            <h3>🍗 Proteínas</h3>
+            <ProductEditor label="Proteína" items={proteins} setItems={setProteins} fields={["extra","sub"]}/>
+            <h3 style={{marginTop:24}}>📐 Reglas de proteínas</h3>
+            {sizes.map(sz=>{
+              const rule=proteinRules.find(r=>r.sizeId===sz.id)||{sizeId:sz.id,included:1,extraPrice:2};
+              return(
+                <div key={sz.id} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:"1px solid var(--bd)"}}>
+                  <div style={{flex:1,fontSize:13,fontWeight:700,color:"var(--cream)"}}>{sz.bkr||"🧪"} {sz.name}</div>
+                  <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    <span style={{fontSize:10,color:"var(--tx3)",fontWeight:700}}>INCL</span>
+                    <input className="price-chip" type="number" min="1" max="10" value={rule.included} style={{width:46}}
+                      onChange={e=>setProteinRules(l=>[...l.filter(r=>r.sizeId!==sz.id),{...rule,included:Number(e.target.value)}])}/>
+                    <span style={{fontSize:10,color:"var(--tx3)",fontWeight:700}}>+$/EXTRA</span>
+                    <input className="price-chip" type="number" min="0" value={rule.extraPrice} style={{width:46}}
+                      onChange={e=>setProteinRules(l=>[...l.filter(r=>r.sizeId!==sz.id),{...rule,extraPrice:Number(e.target.value)}])}/>
+                  </div>
+                </div>
+              );
+            })}
+          </div>}
+          {atab==="toppings"&&<div className="admin-sec"><h3>🌿 Toppings</h3><ProductEditor label="Topping" items={toppings} setItems={setToppings} fields={[]}/></div>}
+          {atab==="salsas"&&<div className="admin-sec"><h3>🧪 Salsas</h3><ProductEditor label="Salsa" items={salsas} setItems={setSalsas} fields={["sub","heat"]}/></div>}
+          {atab==="payments"&&<div className="admin-sec">
+            <h3>💳 Métodos de Pago</h3>
+            <p style={{fontSize:12,color:"var(--tx2)",marginBottom:14,fontWeight:500}}>Activos: Yappy y Efectivo. Puedes agregar link de Yappy para pago directo.</p>
+            <div className="prod-list">
+              {payments.map(pm=>(
+                <div key={pm.id} className="prod-item" style={{flexDirection:"column",alignItems:"stretch",gap:8,opacity:pm.active===false?.5:1}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10}}>
+                    <div className="pe">{pm.icon}</div>
+                    <div className="pi2"><div className="pn2">{pm.name}</div><div className="ps">{pm.desc}</div></div>
+                    <div className="prod-actions">
+                      <label className="toggle"><input type="checkbox" checked={pm.active!==false} onChange={()=>setPayments(l=>l.map(x=>x.id===pm.id?{...x,active:!x.active}:x))}/><span className="toggle-slider"/></label>
+                    </div>
+                  </div>
+                  <input style={{background:"var(--bg4)",border:"1px solid var(--bd2)",borderRadius:8,padding:"8px 12px",color:"var(--cream)",fontFamily:"var(--fb)",fontSize:13,fontWeight:600,outline:"none",width:"100%"}}
+                    type="url" placeholder="Link de pago Yappy (opcional)"
+                    value={pm.link||""} onChange={e=>setPayments(l=>l.map(x=>x.id===pm.id?{...x,link:e.target.value}:x))}/>
+                </div>
+              ))}
+            </div>
+          </div>}
+          {atab==="events"&&<div className="admin-sec"><h3>🎪 Eventos</h3><ProductEditor label="Evento" items={events} setItems={setEvents} fields={["ppp","sub"]}/></div>}
+          {atab==="drinks"&&<div className="admin-sec"><h3>🥤 Bebidas</h3><ProductEditor label="Bebida" items={drinks} setItems={setDrinks} fields={["price","sub"]}/></div>}
+          {atab==="promos"&&<div className="admin-sec"><h3>🎯 Promociones</h3><ProductEditor label="Promoción" items={promos} setItems={setPromos} fields={["price","sub"]}/></div>}
+          {atab==="design"&&<div className="admin-sec">
+            <h3>🎨 Colores</h3>
+            <div className="color-row">
+              <div className="color-swatch"><input type="color" value={theme.bg} onChange={e=>setTheme(t=>({...t,bg:e.target.value}))}/><label>FONDO</label></div>
+              <div className="color-swatch"><input type="color" value={theme.btn} onChange={e=>setTheme(t=>({...t,btn:e.target.value}))}/><label>BOTONES</label></div>
+              <div className="color-swatch"><input type="color" value={theme.accent} onChange={e=>setTheme(t=>({...t,accent:e.target.value}))}/><label>ACENTO</label></div>
+            </div>
+          </div>}
+
+          <button className="btn b-amber bfull" style={{marginTop:16,padding:"15px"}} onClick={saveAll}>
+            💾 Guardar todos los cambios
+          </button>
+          </>
+        )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── INTERACTIVE CTA BUTTON ── */
+function InteractiveCtaBtn({onClick}){
+  const btnRef=useRef(null);
+  const [sparks,setSparks]=useState([]);
+  const [ripples,setRipples]=useState([]);
+  const handleClick=(e)=>{
+    const btn=btnRef.current;if(!btn)return;
+    const rect=btn.getBoundingClientRect();const x=e.clientX-rect.left;const y=e.clientY-rect.top;
+    const rid=Date.now();
+    setRipples(r=>[...r,{id:rid,x,y}]);
+    setTimeout(()=>setRipples(r=>r.filter(i=>i.id!==rid)),520);
+    const newSparks=Array.from({length:8},(_,i)=>{
+      const angle=(i/8)*360;const dist=40+Math.random()*30;
+      const colors=["#ff2200","#ff6600","#ffaa00","#ffd700"];
+      return{id:Date.now()+i,x,y,sx:Math.cos(angle*Math.PI/180)*dist+"px",sy:Math.sin(angle*Math.PI/180)*dist+"px",color:colors[i%colors.length]};
+    });
+    setSparks(s=>[...s,...newSparks]);
+    setTimeout(()=>setSparks(s=>s.filter(sp=>!newSparks.find(n=>n.id===sp.id))),650);
+    onClick&&onClick();
+  };
+  return(
+    <button ref={btnRef} className="btn b-fire cta-main" onClick={handleClick} style={{fontSize:16,padding:"14px 26px",letterSpacing:".3px"}}>
+      {ripples.map(r=>(<span key={r.id} className="cta-ripple" style={{width:40,height:40,left:r.x-20,top:r.y-20}}/>))}
+      {sparks.map(s=>(<span key={s.id} className="cta-spark" style={{left:s.x,top:s.y,background:s.color,"--sx":s.sx,"--sy":s.sy,boxShadow:`0 0 6px ${s.color}`}}/>))}
+      🌶️ Crear mi fórmula
+    </button>
+  );
+}
+
+/* ════════════════════════════════════════
+   ── APP ──
+════════════════════════════════════════ */
+function App(){
+  const [tab,setTab]=useState("order");
+  const [cart,setCart]=useState([]);
+  const [toast,setToast]=useState({msg:"",type:"ok"});
+  const [dpr,setDpr]=useState(null);
+  const [showI,setShowI]=useState(false);
+  const [showAdmin,setShowAdmin]=useState(false);
+  const [showExplosion,setShowExplosion]=useState(false);
+  const [exploded,setExploded]=useState(false);
+  const [showReg,setShowReg]=useState(false);
+  const [registeredCode,setRegisteredCode]=useState(()=>localStorage.getItem("nl_my_code")||null);
+  const [appliedDiscountPct,setAppliedDiscountPct]=useState(()=>Number(localStorage.getItem("nl_my_disc")||DISCOUNT_PCT));
+
+  // Check if launched
+  const isLaunched=Date.now()>=LAUNCH_DATE.getTime();
+
+  // Menu data from localStorage
+  const [sizes,setSzLive]   =useState(()=>LS.get("sizes",D.sizes));
+  const [proteins,setPrLive]=useState(()=>LS.get("proteins",D.proteins));
+  const [salsas,setSlLive]  =useState(()=>LS.get("salsas",D.salsas));
+  const [bases,setBaseLive] =useState(()=>LS.get("bases",D.bases));
+  const [toppings,setTopLive]=useState(()=>LS.get("toppings",D.toppings));
+  const [cheeses,setChsLive]=useState(()=>LS.get("cheeses",D.cheeses));
+  const [payments,setPayLive]=useState(()=>LS.get("payments",D.payments));
+  const [events,setEvLive]  =useState(()=>LS.get("events",D.events));
+  const [sched,setSched]    =useState(()=>LS.get("sched",D.sched));
+  const [settings,setSettings]=useState(()=>LS.get("settings",D.settings));
+  const [drinks,setDrinksLive]=useState(()=>LS.get("drinks",D.drinks));
+  const [special,setSpecialLive]=useState(()=>LS.get("special",D.special));
+  const [promos,setPromosLive]=useState(()=>LS.get("promos",D.promos));
+  const [proteinRules,setRulesLive]=useState(()=>LS.get("proteinRules",D.proteinRules));
+
+  const aSz=sizes.filter(x=>x.active!==false);
+  const aPr=proteins.filter(x=>x.active!==false);
+  const aSl=salsas.filter(x=>x.active!==false);
+  const aBs=bases.filter(x=>x.active!==false);
+  const aTop=toppings.filter(x=>x.active!==false);
+  const aPay=payments.filter(x=>x.active!==false);
+  const aEv=events.filter(x=>x.active!==false);
+  const aChs=cheeses.filter(x=>x.active!==false);
+
+  const empty={size:null,base:null,proteins:[],cheese:null,toppings:[],salsa:null};
+  const [step,setStep]=useState(0);
+  const [build,setBuild]=useState(empty);
+  const [pay,setPay]=useState(null);
+  const [discCode,setDiscCode]=useState("");
+  const [discApplied,setDiscApplied]=useState(false);
+  const [appliedDiscount,setAppliedDiscount]=useState(DISCOUNT_PCT);
+  const [tid,setTid]=useState("");
+  const [tracked,setTracked]=useState(null);
+  const [evT,setEvT]=useState(null);
+  const [evF,setEvF]=useState({name:"",phone:"",date:"",time:"",address:"",guests:"",notes:""});
+  const [evDone,setEvDone]=useState(false);
+
+  const STS=["Tamaño","Base","Proteínas","Queso","Toppings","Salsa","Bebida","Resumen"];
+  const MAX_STEPS=7;
+
+  useEffect(()=>{
+    applyTheme(LS.get("theme",D.theme));
+    applyAnimCfg(LS.get("animCfg",D.animCfg));
+    window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();setDpr(e);setShowI(true);});
+    if("serviceWorker"in navigator)navigator.serviceWorker.register("/sw.js").catch(()=>{});
+    if(window.matchMedia("(display-mode: standalone)").matches)setShowI(false);
+  },[]);
+
+  const toast$=(msg,type="ok")=>{setToast({msg,type});setTimeout(()=>setToast({msg:"",type:"ok"}),3000);};
+  const install=async()=>{if(!dpr)return;dpr.prompt();const{outcome}=await dpr.userChoice;if(outcome==="accepted")setShowI(false);};
+  const pick=(f,v,n)=>{setBuild(b=>({...b,[f]:v}));setTimeout(()=>setStep(n),260);};
+  const togT=(t)=>setBuild(b=>({...b,toppings:b.toppings.find(x=>x.id===t.id)?b.toppings.filter(x=>x.id!==t.id):[...b.toppings,t]}));
+
+  const goToSummary=()=>{
+    setStep(7);
+    if(!exploded){setTimeout(()=>{setShowExplosion(true);},400);}
+  };
+
+  const addCart=()=>{
+    setCart(c=>[...c,{...build,price:pc(build.size,build.proteins,proteinRules,build.toppings),id:Date.now()}]);
+    setBuild(empty);setStep(0);setExploded(false);
+    toast$("✅ ¡Fórmula agregada al carrito!");setTab("order");
+  };
+  const rmCart=(id)=>{setCart(c=>c.filter(i=>i.id!==id));toast$("🗑️ Orden eliminada");};
+
+  const [cartDrinks,setCartDrinks]=useState([]);
+  const addDrink=(d)=>setCartDrinks(l=>[...l,{...d,_uid:uid()}]);
+  const removeDrink=(d)=>setCartDrinks(l=>{const idx=l.map(x=>x.id).lastIndexOf(d.id);if(idx<0)return l;return l.filter((_,i)=>i!==idx);});
+  const drinkTotal=cartDrinks.reduce((s,d)=>s+Number(d.price),0);
+  const rawTotal=cart.reduce((s,i)=>s+i.price,0)+drinkTotal;
+  const discAmt=discApplied?rawTotal*(appliedDiscount/100):0;
+  const total=rawTotal-discAmt;
+
+  const applyDiscCode=async()=>{
+    if(!discCode.trim()){toast$("⚠️ Ingresa tu código","err");return;}
+    try{
+      const reg=await RegStore.findByCode(discCode.toUpperCase());
+      if(!reg){toast$("❌ Código inválido","err");return;}
+      if(reg.used){toast$("⚠️ Este código ya fue usado","err");return;}
+      setDiscApplied(true);
+      setAppliedDiscount(reg.discount||DISCOUNT_PCT);
+      toast$(`✅ ¡${reg.discount||DISCOUNT_PCT}% de descuento aplicado!`);
+    }catch{toast$("❌ Error verificando código","err");}
+  };
+
+  const sendOrder=()=>{
+    if(!pay){toast$("⚠️ Selecciona método de pago","err");return;}
+    if(discApplied&&discCode){RegStore.markUsed(discCode.toUpperCase()).catch(()=>{});}
+    const pm=aPay.find(p=>p.id===pay);
+    if(pm?.link){window.open(pm.link,"_blank");}
+    makeWA(settings.wa,owMsg(cart,pm?.name||pay,settings.wa,discApplied?discCode.toUpperCase():null,discAmt));
+    toast$("📲 Abriendo WhatsApp...");
+  };
+
+  const doTrack=()=>{
+    if(!tid.trim()){toast$("⚠️ Ingresa tu código","err");return;}
+    setTracked({id:tid.toUpperCase(),si:2,steps:[
+      {label:"Pedido recibido",desc:"Tu orden fue confirmada",time:"12:30 pm",done:true},
+      {label:"En preparación",desc:"Armando tu fórmula 🌮",time:"12:36 pm",done:true},
+      {label:"Listo para entrega",desc:"Tu nacho está listo 🔥",time:"12:43 pm",done:false},
+      {label:"Entregado",desc:"¡Buen provecho!",time:"--",done:false}
+    ]});
+  };
+
+  const sendEv=()=>{
+    if(!evT||!evF.name||!evF.date||!evF.guests){toast$("⚠️ Completa los campos requeridos","err");return;}
+    makeWA(settings.wa,evMsg(evF,evT,settings.wa));setEvDone(true);
+  };
+
+  const handleRegSuccess=(code,discount)=>{
+    setRegisteredCode(code);
+    setAppliedDiscountPct(discount||DISCOUNT_PCT);
+    localStorage.setItem("nl_my_code",code);
+    localStorage.setItem("nl_my_disc",String(discount||DISCOUNT_PCT));
+    setDiscCode(code);
+  };
+
+  const handleSaved=({sched:ns,settings:nst,payments:np,drinks:nd,special:nsp,promos:npr,proteinRules:nrules,cheeses:nch})=>{
+    setSched(ns);setSettings(nst);setPayLive(np);
+    if(nd)setDrinksLive(nd);
+    if(nsp)setSpecialLive(nsp);
+    if(npr)setPromosLive(npr);
+    if(nrules)setRulesLive(nrules);
+    if(nch)setChsLive(nch);
+    setSzLive(LS.get("sizes",D.sizes));setPrLive(LS.get("proteins",D.proteins));
+    setSlLive(LS.get("salsas",D.salsas));setBaseLive(LS.get("bases",D.bases));
+    setTopLive(LS.get("toppings",D.toppings));setEvLive(LS.get("events",D.events));
+  };
+
+  return(<>
+    <header className="hdr">
+      <div className="logo">
+        <div className="logo-gem">🧪</div>
+        <div className="logo-text"><span className="logo-n">Nacho</span><span className="logo-l">Lab</span></div>
+      </div>
+      <div className="hdr-r">
+        {!registeredCode&&<button className="reg-btn" onClick={()=>setShowReg(true)}>🎟️ {isLaunched?"30% OFF":"Registrarse"}</button>}
+        <button className="admin-btn" onClick={()=>setShowAdmin(true)}>⚙️</button>
+        <button className="hcart" onClick={()=>setTab("cart")}>
+          🛒 <span>${total.toFixed(2)}</span>
+          {cart.length>0&&<span className="cpill">{cart.length}</span>}
+        </button>
+      </div>
+    </header>
+
+    <div className="sched-bar">
+      <div className="sb-item"><span className="sb-dot"/>📍 {settings.address}</div>
+      <div className="sb-item">🕐 {sched.horario}</div>
+      <div className="sb-item">📅 {sched.dias}</div>
+      <div className="sb-item">💬 {sched.nota}</div>
+    </div>
+
+    {/* COUNTDOWN STRIP */}
+    <CountdownStrip registeredCode={registeredCode}/>
+
+    {/* ════ ORDER ════ */}
+    {tab==="order"&&<div className="scr">
+      {!isLaunched?(
+        <PreLaunchScreen
+          onRegister={()=>setShowReg(true)}
+          registeredCode={registeredCode}
+        />
+      ):(
+        <>
+      <div className="hero">
+        <div className="orb o1"/><div className="orb o2"/><div className="orb o3"/>
+        <img className="hero-img"
+          src="https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?w=900&q=80"
+          alt="Nachos premium"
+          onError={e=>{e.target.src="https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=900&q=80";e.target.onerror=null;}}
+        />
+        <div className="hero-ov"/>
+        <div className="hero-content">
+          <div className="hero-tag fu">🧬 Laboratorio Gastronómico · PTY</div>
+          <h1><span className="h1a fu1">DISEÑA TU</span><span className="h1b fu2">FÓRMULA</span></h1>
+          <p className="hero-sub fu2">Nachos premium donde <strong>tú eres el científico</strong>. Cada ingrediente, tu decisión.</p>
+          <div className="hcta fu3">
+            <InteractiveCtaBtn onClick={()=>{setStep(0);setTimeout(()=>document.querySelector('.srow')?.scrollIntoView({behavior:'smooth'}),100);}}/>
+            <button className="btn b-ol" onClick={()=>setTab("events")}>🎪 Eventos</button>
+          </div>
+        </div>
+      </div>
+
+      <div className="fstrip fu">
+        <span className="fchip fc-r">🔴 Estimula el apetito</span>
+        <span className="fchip fc-o">🟠 Ingredientes frescos</span>
+        <span className="fchip fc-g">🟢 100% Natural</span>
+        <span className="fchip fc-y">🟡 Premium Quality</span>
+      </div>
+
+      <div className="stats fu">
+        <div className="stp sf"><div className="sv">+50</div><div className="sl">Combinaciones</div></div>
+        <div className="stp sw"><div className="sv">5 min</div><div className="sl">Preparación</div></div>
+        <div className="stp sc"><div className="sv">100%</div><div className="sl">Fresco</div></div>
+        <div className="stp sf"><div className="sv">${aSz[0]?.price||8.99}</div><div className="sl">Desde</div></div>
+      </div>
+
+      <SpecialCard special={special} onSpecial={(sp)=>{makeWA(settings.wa,`Hola, quiero el especial del mes: ${sp.commonName} (+$${sp.price})`);}}/>
+      <PromosRow promos={promos} onPromo={(p)=>{makeWA(settings.wa,`Hola, me interesa la promo: *${p.title}* — ${p.desc} ($${p.price})`);}}/>
+
+      {showI&&<div className="ibar fu"><div className="ii">📲</div><div style={{flex:1}}><h4>Instalar como app</h4><p>Acceso rápido desde tu pantalla de inicio</p></div><button onClick={install}>Instalar</button></div>}
+
+      <div className="srow">{STS.map((s,i)=><button key={s} className={`sp${step===i?" a":i<step?" d":""}`} onClick={()=>i<=step&&setStep(i)}>{i<step?"✓ ":`${i+1}. `}{s}</button>)}</div>
+
+      {step>=1&&step<=6&&<FormulaLab build={build} maxSteps={MAX_STEPS} cartDrinks={cartDrinks}/>}
+
+      {step===0&&<div className="fu">
+        <div className="sh"><div className="st">Elige tu <span className="gw">tamaño</span></div><div className="ss">⚗️ Tu recipiente de laboratorio</div></div>
+        <div className="sgrid">{aSz.map(sz=>{
+          const rule=proteinRules.find(r=>r.sizeId===sz.id)||{included:1,extraPrice:2};
+          return(
+            <div key={sz.id} className={`szc${build.size?.id===sz.id?" sel":""}`} onClick={()=>pick("size",sz,1)}>
+              <div className="szb">{sz.bkr||"🧪"}</div>
+              <div className="szn">{sz.name}</div>
+              <div className="szp">${sz.price}</div>
+              {sz.badge&&<div className="szb2">⭐ {sz.badge}</div>}
+              <div style={{marginTop:8,padding:"8px 10px",background:"rgba(255,255,255,0.04)",borderRadius:8,width:"100%",textAlign:"left"}}>
+                <div style={{fontSize:10,color:"var(--fire3)",fontWeight:800,letterSpacing:"1px",marginBottom:4}}>INCLUYE</div>
+                <div style={{fontSize:11,color:"var(--tx2)",fontWeight:600,lineHeight:1.7}}>
+                  🍗 {rule.included} proteína{rule.included!==1?"s":""}<br/>
+                  🌿 Toppings libres<br/>
+                  ➕ Extras a partir de +$1.50
+                </div>
+              </div>
+            </div>
+          );
+        })}</div>
+      </div>}
+
+      {step===1&&<div className="fu">
+        <div className="sh"><div className="st">Elige tu <span className="fi">base</span></div><div className="ss">🌽 El fundamento de tu fórmula</div></div>
+        <div className="cgrid">{aBs.map(b=><Card key={b.id} item={b} sel={build.base?.id===b.id} onSel={v=>pick("base",v,2)}/>)}</div>
+      </div>}
+
+      {step===2&&<div className="fu">
+        <div className="sh"><div className="st">Tu <span className="fi">proteína</span></div><div className="ss">🔥 Sazonada al momento en plancha viva</div></div>
+        {build.size&&<ProteinRuleHint
+          size={build.size}
+          selectedProteins={build.proteins}
+          rule={proteinRules.find(r=>r.sizeId===build.size?.id)||{included:1,extraPrice:2}}
+        />}
+        <div className="cgrid">{aPr.map(p=>{
+          const sel=build.proteins.find(x=>x.id===p.id);
+          const col=sel?(p.col||"so"):"";
+          if(p.active===false)return<div key={p.id} className="sc disabled"><div className="ce">{p.emoji}</div><div className="cn">{p.name}</div></div>;
+          return(
+            <div key={p.id} className={`sc ${col}`} onClick={()=>{setBuild(b=>{const already=b.proteins.find(x=>x.id===p.id);return{...b,proteins:already?b.proteins.filter(x=>x.id!==p.id):[...b.proteins,p]};});}}>
+              <div className="chk">✓</div>
+              <div className="ce">{p.emoji}</div>
+              <div className="cn">{p.name}</div>
+              {p.extra>0&&<div className="cx">+${p.extra}</div>}
+            </div>
+          );
+        })}</div>
+        <div className="btn-row">
+          <button className="btn b-fresh" disabled={build.proteins.length===0} onClick={()=>setStep(3)}>Continuar con queso →</button>
+        </div>
+      </div>}
+
+      {step===3&&<div className="fu">
+        <div className="sh"><div className="st">Elige tu <span className="fi">queso</span></div><div className="ss">🧀 El fundente de tu fórmula</div></div>
+        <div className="cgrid">{aChs.map(ch=>(
+          <div key={ch.id} className={`sc${build.cheese?.id===ch.id?" so":""}`} onClick={()=>pick("cheese",ch,4)}>
+            <div className="chk">✓</div>
+            <div className="ce">{ch.emoji}</div>
+            <div className="cn">{ch.name}</div>
+          </div>
+        ))}</div>
+        <div className="btn-row"><button className="btn b-fresh" disabled={!build.cheese} onClick={()=>setStep(4)}>Continuar con toppings →</button></div>
+      </div>}
+
+      {step===4&&<div className="fu">
+        <div className="sh"><div className="st">Tus <span className="fr">toppings</span></div><div className="ss">🌿 100% frescos</div></div>
+        {(()=>{
+          const premIncl=build.size?.id==="muestra"?0:build.size?.id==="formula"?1:2;
+          const selPrem=build.toppings.filter(t=>t.premium);
+          const freeTop=aTop.filter(t=>!t.premium);
+          const premTop=aTop.filter(t=>t.premium);
+          return(<>
+            <div style={{margin:"0 20px 8px",padding:"10px 14px",background:"rgba(255,170,0,.07)",border:"1px solid rgba(255,170,0,.2)",borderRadius:10,fontSize:12,color:"var(--tx2)",fontWeight:600,lineHeight:1.5}}>
+              🌿 <strong style={{color:"var(--cream)"}}>Toppings libres ilimitados</strong> · ⭐ <strong style={{color:"var(--fire3)"}}>{premIncl} premium incluido{premIncl!==1?"s":""}</strong>
+              {selPrem.length>premIncl&&<span style={{color:"var(--fire1)"}}> · +${((selPrem.length-premIncl)*1.5).toFixed(2)} extra</span>}
+            </div>
+            <div style={{padding:"0 20px 6px",fontSize:11,fontWeight:800,color:"var(--tx3)",letterSpacing:"1px",textTransform:"uppercase"}}>🌿 Libres</div>
+            <div className="tw">{freeTop.map(t=><button key={t.id} className={`tc${build.toppings.find(x=>x.id===t.id)?" on":""}`} onClick={()=>togT(t)}>{t.emoji} {t.name}</button>)}</div>
+            <div style={{padding:"10px 20px 6px",fontSize:11,fontWeight:800,color:"var(--fire3)",letterSpacing:"1px",textTransform:"uppercase"}}>⭐ Premium +$1.50{premIncl>0?` (${premIncl} incl.)`:" "}</div>
+            <div className="tw">{premTop.map(t=>{
+              const sel=build.toppings.find(x=>x.id===t.id);
+              const selIdx=build.toppings.filter(x=>x.premium).indexOf(t);
+              const isFree=sel&&selIdx<premIncl;
+              return(<button key={t.id} className={`tc${sel?" on":""}`} onClick={()=>togT(t)} style={{position:"relative"}}>{t.emoji} {t.name}{sel&&isFree?<span style={{fontSize:9,marginLeft:4,color:"var(--fire3)",fontWeight:800}}>✓INCL.</span>:sel?<span style={{fontSize:9,marginLeft:4,color:"var(--fire1)",fontWeight:800}}>+$1.50</span>:<span style={{fontSize:9,marginLeft:4,color:"var(--fire3)",opacity:.7}}>+$1.50</span>}</button>);
+            })}</div>
+          </>);
+        })()}
+        <div className="btn-row"><button className="btn b-fresh" onClick={()=>setStep(5)}>Continuar con la salsa →</button></div>
+      </div>}
+
+      {step===5&&<div className="fu">
+        <div className="sh"><div className="st">El <span className="fi">catalizador</span></div><div className="ss">🧪 La salsa que activa toda la fórmula</div></div>
+        <div className="cgrid">{aSl.map(s=><Card key={s.id} item={s} sel={build.salsa?.id===s.id} onSel={v=>pick("salsa",v,4)} showH/>)}</div>
+        <div className="btn-row">
+          <button className="btn b-fresh" disabled={!build.salsa} onClick={()=>setStep(6)}>Continuar con bebidas →</button>
+        </div>
+      </div>}
+
+      {step===6&&<div className="fu">
+        <DrinkSelector drinks={drinks} cartDrinks={cartDrinks} onAdd={addDrink} onRemove={removeDrink}/>
+        <div className="btn-row"><button className="btn b-fire" onClick={()=>goToSummary()}>🔬 Ver resumen →</button></div>
+      </div>}
+
+      {step===7&&<div className="fu">
+        <div className="sh"><div className="st">Tu <span className="gw">fórmula</span></div><div className="ss">🔬 Lista para iniciar</div></div>
+        <div style={{padding:"14px 20px 0",display:"flex",gap:16,alignItems:"center"}}>
+          <div style={{width:70,flexShrink:0}}><BeakerSVG fill={1}/></div>
+          <div style={{flex:1}}>
+            <div style={{fontFamily:"var(--fd)",fontSize:16,color:"var(--cream)",marginBottom:4}}>Matraz lleno al 100%</div>
+            <div style={{fontSize:12,color:"var(--tx2)",lineHeight:1.5,fontWeight:500}}>Todos los componentes seleccionados.</div>
+            <div style={{marginTop:8,fontSize:13,color:"var(--green)",fontWeight:700}}>✅ Fórmula verificada</div>
+          </div>
+        </div>
+        <div className="sumbox">
+          <div className="sumhdr"><span>🧬 Fórmula #{String(Date.now()).slice(-4)}</span></div>
+          {[["Tamaño",`${build.size?.name}`],["Base",build.base?.name],["Proteínas",build.proteins.length?build.proteins.map(p=>p.name).join(", "):"—"],["Queso",build.cheese?.name||"-"],["Toppings",build.toppings.length?build.toppings.map(t=>t.name).join(", "):"Sin extras"],["Catalizador",build.salsa?.name],[cartDrinks.length>0&&"Bebidas",cartDrinks.length>0&&cartDrinks.map(d=>d.name).join(", ")]].filter(([l])=>l).map(([l,v])=><div key={l} className="sr2"><span className="slb">{l}</span><span className="svl">{v}</span></div>)}
+          <div className="stot"><span className="slb">Total de la fórmula</span><span className="svl">${(pc(build.size,build.proteins,proteinRules,build.toppings)+drinkTotal).toFixed(2)}</span></div>
+        </div>
+        <div className="btn-row"><button className="btn b-ghost" onClick={()=>setStep(0)}>← Editar</button><button className="btn b-fire" onClick={addCart}>Agregar al carrito 🛒</button></div>
+      </div>}
+      </>
+      )}
+    </div>}
+
+    {/* ════ CART ════ */}
+    {tab==="cart"&&<div className="scr pt">
+      <div className="sh"><div className="st">Tu <span className="gw">carrito</span></div><div className="ss">{cart.length} orden{cart.length!==1?"es":""}</div></div>
+      {cart.length===0
+        ?<div className="cempty fu"><div className="ei">🧪</div><h3>Carrito vacío</h3><p>{isLaunched?"Todavía no has creado ninguna fórmula":"Los pedidos abren el 11 de junio 🌮"}</p>{isLaunched&&<button className="btn b-fire" onClick={()=>setTab("order")}>🌶️ Crear mi fórmula</button>}</div>
+        :<>
+          {cart.map((item,idx)=>(
+            <div key={item.id} className="ci fu">
+              <div className="cib"><h4>🧪 Fórmula {item.size.name} #{idx+1}</h4><p>{item.base.name} · {(item.proteins||[item.protein]).filter(Boolean).map(p=>p.name).join(", ")}<br/>{item.toppings.length>0&&item.toppings.map(t=>t.name).join(", ")+" · "}{item.salsa.name}</p></div>
+              <div className="cir"><span className="cip">${item.price.toFixed(2)}</span><button className="btn b-danger" onClick={()=>rmCart(item.id)}>✕</button></div>
+            </div>
+          ))}
+          {cartDrinks.length>0&&<div style={{margin:"8px 20px 0",background:"var(--bg2)",border:"1px solid rgba(0,188,212,.2)",borderRadius:"var(--r)",padding:"14px 16px"}}>
+            <div style={{fontSize:11,fontWeight:800,color:"#00bcd4",letterSpacing:"1px",marginBottom:8}}>🥤 BEBIDAS</div>
+            {Object.entries(cartDrinks.reduce((acc,d)=>{acc[d.id]={...d,qty:(acc[d.id]?.qty||0)+1};return acc;},{})).map(([id,d])=>(
+              <div key={id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:"1px solid rgba(0,188,212,.08)"}}>
+                <span style={{fontSize:13,fontWeight:600,color:"var(--cream)"}}>{d.emoji} {d.name} ×{d.qty}</span>
+                <span style={{fontSize:13,fontWeight:700,color:"#00e5ff"}}>${(d.price*d.qty).toFixed(2)}</span>
+              </div>
+            ))}
+          </div>}
+
+          {/* DISCOUNT CODE INPUT */}
+          <div style={{margin:"12px 20px 0",padding:"14px 16px",background:"var(--bg2)",border:`1px solid ${discApplied?"rgba(77,170,87,.3)":"var(--bd)"}`,borderRadius:"var(--r)"}}>
+            <div style={{fontSize:11,fontWeight:800,color:discApplied?"var(--green)":"var(--tx3)",letterSpacing:"1.5px",textTransform:"uppercase",marginBottom:10}}>
+              🎟️ {discApplied?`${appliedDiscount}% descuento aplicado ✅`:"Código de descuento"}
+            </div>
+            {!discApplied?(
+              <div style={{display:"flex",gap:8}}>
+                <input style={{flex:1,background:"var(--bg3)",border:"1.5px solid var(--bd2)",borderRadius:10,padding:"10px 14px",color:"var(--cream)",fontFamily:"var(--fb)",fontSize:14,fontWeight:700,outline:"none",textTransform:"uppercase",letterSpacing:2}}
+                  placeholder={registeredCode||"NL-XXXX"}
+                  value={discCode}
+                  onChange={e=>setDiscCode(e.target.value.toUpperCase())}
+                  onFocus={e=>{if(registeredCode&&!discCode)setDiscCode(registeredCode);}}
+                />
+                <button className="btn b-amber" style={{padding:"10px 14px",fontSize:13}} onClick={applyDiscCode}>Aplicar</button>
+              </div>
+            ):(
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                <div>
+                  <div style={{fontFamily:"var(--fd)",fontSize:18,fontWeight:900,color:"var(--fire3)",letterSpacing:2}}>{discCode}</div>
+                  <div style={{fontSize:12,color:"var(--green)",fontWeight:600,marginTop:2}}>−${discAmt.toFixed(2)} de descuento</div>
+                </div>
+                <button className="btn b-danger" style={{fontSize:12,padding:"7px 12px"}} onClick={()=>{setDiscApplied(false);setDiscCode("");}}>Quitar</button>
+              </div>
+            )}
+          </div>
+
+          <div className="ctot fu">
+            <div>
+              <div className="ctl">Total {discApplied?<span style={{color:"var(--green)",fontSize:11}}>(con {appliedDiscount}% desc.)</span>:""}</div>
+              {discApplied&&<div style={{fontSize:13,color:"var(--tx3)",textDecoration:"line-through",fontWeight:600}}>${rawTotal.toFixed(2)}</div>}
+              <div className="cta">${total.toFixed(2)}</div>
+            </div>
+            <button className="btn b-ol" onClick={()=>setTab("order")}>+ Añadir</button>
+          </div>
+
+          <div className="sh" style={{paddingTop:24}}><div className="st" style={{fontSize:22}}>Método de <span className="gw">pago</span></div></div>
+          <div className="pgrid">{aPay.map(pm=>(
+            <div key={pm.id} className={`pc${pay===pm.id?" sel":""}`} onClick={()=>setPay(pm.id)}>
+              <div className="pi">{pm.icon}</div>
+              <div className="pn">{pm.name}</div>
+              <div className="pd">{pm.desc}</div>
+              {pm.link&&<div className="p-link">🔗 Link disponible</div>}
+            </div>
+          ))}</div>
+
+          <div style={{padding:"18px 20px 0"}}>
+            <button className="btn b-wa bfull" style={{padding:"16px",fontSize:16}} onClick={sendOrder} disabled={!pay}>
+              📲 {aPay.find(p=>p.id===pay)?.link?"Ir a pagar y confirmar por WhatsApp":"Enviar pedido por WhatsApp"}
+            </button>
+            <p className="note">Pedidos por WhatsApp · Confirmamos en minutos{discApplied?` · ${DISCOUNT_PCT}% de descuento aplicado 🎟️`:""}</p>
+          </div>
+        </>
+      }
+    </div>}
+
+    {/* ════ TRACK ════ */}
+    {tab==="track"&&<div className="scr pt">
+      <div className="sh"><div className="st">Rastrear <span className="gw">fórmula</span></div><div className="ss">🔬 Ingresa el código de tu pedido</div></div>
+      <div style={{padding:"16px 20px 0"}}>
+        <div className="ig"><label>Código de pedido</label><input placeholder="Ej: NL-001" value={tid} onChange={e=>setTid(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doTrack()}/></div>
+        <button className="btn b-fire" onClick={doTrack}>🔍 Rastrear</button>
+      </div>
+      {tracked&&<div style={{padding:"24px 20px 0"}} className="fu">
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
+          <div><div style={{fontSize:11,color:"var(--tx3)",fontWeight:700,textTransform:"uppercase",letterSpacing:1}}>Fórmula</div><div style={{fontFamily:"var(--fd)",fontSize:32,fontWeight:900,background:"linear-gradient(135deg,var(--fire1),var(--fire3))",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>#{tracked.id}</div></div>
+          <span style={{background:"rgba(255,170,0,.1)",border:"1px solid rgba(255,170,0,.3)",color:"var(--fire3)",padding:"5px 12px",borderRadius:8,fontSize:12,fontWeight:700}}>⏳ En proceso</span>
+        </div>
+        <div className="tks">{tracked.steps.map((s,i)=><div key={i} className="tk"><div className="tl"><div className={`td${s.done?" dn":i===tracked.si?" ac":""}`}>{s.done?"✓":i===tracked.si?"🔥":"·"}</div>{i<tracked.steps.length-1&&<div className={`tc2${s.done?" dn":""}`}/>}</div><div className="ti"><h4 style={{color:s.done?"var(--green)":i===tracked.si?"var(--fire3)":"var(--tx3)"}}>{s.label}</h4><p>{s.desc}</p><div className="tt">{s.time}</div></div></div>)}</div>
+        <div className="wabox"><p>¿Tienes dudas?</p><button className="btn b-wa" onClick={()=>makeWA(settings.wa,`Hola, consulto sobre mi pedido #${tracked.id}`)}>💬 Consultar por WhatsApp</button></div>
+      </div>}
+    </div>}
+
+    {/* ════ EVENTS ════ */}
+    {tab==="events"&&<div className="scr pt">
+      <div className="sh"><div className="st">Reservar <span className="fi">evento</span></div><div className="ss">🎪 Llevamos el lab a donde estés · desde 10 personas</div></div>
+      {evDone
+        ?<div className="succ"><div className="si">🎉</div><h2>¡RESERVA ENVIADA!</h2><p>Te contactaremos por WhatsApp en las próximas horas para confirmar los detalles.</p><button className="btn b-ol" onClick={()=>{setEvDone(false);setEvT(null);setEvF({name:"",phone:"",date:"",time:"",address:"",guests:"",notes:""});}}>Nueva reserva</button></div>
+        :<>
+          <div className="egrid">{aEv.map(ev=><div key={ev.id} className={`ev${evT?.id===ev.id?" sel":""}`} onClick={()=>setEvT(ev)}><div className="evi">{ev.icon}</div><div className="evn">{ev.name}</div><div className="evm">Mín. {ev.min} personas</div><div className="evp">${ev.ppp}/persona</div></div>)}</div>
+          {evT&&<div style={{padding:"20px 20px 0"}} className="fu">
+            <div className="st" style={{fontSize:22,marginBottom:14}}>Detalles del <span className="gw">evento</span></div>
+            <div className="ir"><div className="ig"><label>Nombre / Empresa *</label><input value={evF.name} onChange={e=>setEvF(f=>({...f,name:e.target.value}))}/></div><div className="ig"><label>Teléfono *</label><input type="tel" value={evF.phone} onChange={e=>setEvF(f=>({...f,phone:e.target.value}))}/></div></div>
+            <div className="ir"><div className="ig"><label>Fecha *</label><input type="date" value={evF.date} onChange={e=>setEvF(f=>({...f,date:e.target.value}))}/></div><div className="ig"><label>Hora *</label><input type="time" value={evF.time} onChange={e=>setEvF(f=>({...f,time:e.target.value}))}/></div></div>
+            <div className="ir"><div className="ig"><label>Personas *</label><input type="number" value={evF.guests} onChange={e=>setEvF(f=>({...f,guests:e.target.value}))}/></div><div className="ig"><label>Dirección *</label><input value={evF.address} onChange={e=>setEvF(f=>({...f,address:e.target.value}))}/></div></div>
+            <div className="ig"><label>Notas adicionales</label><textarea value={evF.notes} onChange={e=>setEvF(f=>({...f,notes:e.target.value}))}/></div>
+            {evF.guests&&<div className="sumbox" style={{margin:"0 0 16px"}}><div className="sumhdr"><span>💰 Estimado</span></div><div className="sr2"><span className="slb">Tipo</span><span className="svl">{evT.name}</span></div><div className="sr2"><span className="slb">Personas</span><span className="svl">{evF.guests}</span></div><div className="stot"><span className="slb">Total estimado</span><span className="svl">${(Number(evF.guests)*evT.ppp).toFixed(2)}</span></div></div>}
+            <button className="btn b-wa bfull" style={{padding:"16px",fontSize:16}} onClick={sendEv}>📲 Enviar reserva por WhatsApp</button>
+          </div>}
+        </>
+      }
+    </div>}
+
+    {/* BOTTOM NAV */}
+    <nav className="bnav">
+      {[["order","🌮","Ordenar"],["cart","🛒","Carrito"],["track","📍","Rastrear"],["events","🎪","Eventos"]].map(([id,ic,lb])=>(
+        <button key={id} className={`nb${tab===id?" on":""}`} onClick={()=>setTab(id)}>
+          <span className="bi">{ic}</span><span>{lb}</span>
+          {id==="cart"&&cart.length>0&&<span className="nbadge">{cart.length}</span>}
+        </button>
+      ))}
+    </nav>
+
+    {/* 💥 EXPLOSION */}
+    {showExplosion&&<Explosion onDone={()=>{setShowExplosion(false);setExploded(true);}}/>}
+
+    {/* 🎟️ REGISTRATION */}
+    {showReg&&<RegistrationScreen
+      onClose={()=>setShowReg(false)}
+      onSuccess={handleRegSuccess}
+      toast$={toast$}
+    />}
+
+    {showAdmin&&<AdminPanel onClose={()=>setShowAdmin(false)} toast$={toast$} onSaved={handleSaved}/>}
+    <Toast msg={toast.msg} type={toast.type}/>
+  </>);
+}
+
+ReactDOM.createRoot(document.getElementById("app")).render(<App/>);
+</script>
+</body>
+</html>
