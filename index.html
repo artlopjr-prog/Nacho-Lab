@@ -1125,7 +1125,7 @@ if(localStorage.getItem("nl_data_version")!==DATA_VERSION){
   ["sizes","proteins","salsas","bases","toppings","payments","events","sched","theme","settings","drinks","special","promos","proteinRules","animCfg"].forEach(k=>localStorage.removeItem("nl5_"+k));
   localStorage.setItem("nl_data_version",DATA_VERSION);
 }
-const APP_VER="6.0";
+const APP_VER="6.1";
 const LS={
   get:(k,d)=>{try{if(localStorage.getItem("nl5_ver")!==APP_VER){["sizes","proteins","salsas","bases","toppings","cheeses","drinks","payments","events","special","promos","proteinRules"].forEach(x=>localStorage.removeItem("nl5_"+x));localStorage.setItem("nl5_ver",APP_VER);}const v=localStorage.getItem("nl5_"+k);return v?JSON.parse(v):d}catch{return d}},
   set:(k,v)=>{try{localStorage.setItem("nl5_"+k,JSON.stringify(v))}catch{}}
@@ -4279,7 +4279,279 @@ function App(){
   </>);
 }
 
-ReactDOM.createRoot(document.getElementById("app")).render(<App/>);
+
+// ════════════════════════════════════════════════════════════════
+// CENTRO DE CONTROL (OPERADOR) — nacho-lab.com/operador
+// URL oculta + contraseña. Reutiliza OrderStore/ORDER_STEPS.
+// Pedidos del día · ruta óptima · navegación · estatus · reportes.
+// ════════════════════════════════════════════════════════════════
+const OP_STEPS=["Pedido recibido","En preparación","En camino","Entregado"];
+// Punto de partida del repartidor (Versalles - donde vive Arturo)
+const OP_HOME={lat:9.0817,lng:-79.5183,name:"Base (Versalles)"};
+
+// distancia haversine en km
+function opDist(a,b){
+  if(!a||!b||a.lat==null||b.lat==null)return 9999;
+  const R=6371,dLat=(b.lat-a.lat)*Math.PI/180,dLng=(b.lng-a.lng)*Math.PI/180;
+  const x=Math.sin(dLat/2)**2+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+// ruta óptima por vecino más cercano desde la base
+function opRoute(stops,start){
+  const pts=stops.filter(s=>s.lat!=null&&s.lng!=null);
+  const noGeo=stops.filter(s=>s.lat==null||s.lng==null);
+  const route=[];let cur=start||OP_HOME;const left=[...pts];
+  while(left.length){
+    let bi=0,bd=Infinity;
+    left.forEach((p,i)=>{const d=opDist(cur,p);if(d<bd){bd=d;bi=i;}});
+    const next=left.splice(bi,1)[0];route.push({...next,legKm:bd});cur=next;
+  }
+  return{route,noGeo};
+}
+
+function OperatorCenter(){
+  const[auth,setAuth]=useState(()=>sessionStorage.getItem("nl_op_ok")==="1");
+  const[pw,setPw]=useState("");const[pwErr,setPwErr]=useState(false);
+  const[orders,setOrders]=useState([]);const[loading,setLoading]=useState(false);
+  const[view,setView]=useState("today"); // today | route | stats
+  const[updating,setUpdating]=useState(null);
+  const[startPoint,setStartPoint]=useState(null); // GPS actual del repartidor
+  const[toast,setToast]=useState("");
+  const toastMsg=(m)=>{setToast(m);setTimeout(()=>setToast(""),2500);};
+
+  const login=()=>{if(pw===ADMIN_PW){setAuth(true);sessionStorage.setItem("nl_op_ok","1");}else{setPwErr(true);setTimeout(()=>setPwErr(false),2000);}};
+  const load=async()=>{setLoading(true);try{const o=await OrderStore.fetchAll();setOrders([...o].reverse());}catch(e){}setLoading(false);};
+  useEffect(()=>{if(auth)load();},[auth]);
+  useEffect(()=>{if(!auth)return;const iv=setInterval(load,30000);return()=>clearInterval(iv);},[auth]);
+
+  // helpers de fecha
+  const todayStr2=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
+  const isToday=(ts)=>{if(!ts)return false;const d=new Date(ts);const t=new Date();return d.getFullYear()===t.getFullYear()&&d.getMonth()===t.getMonth()&&d.getDate()===t.getDate();};
+
+  const todayOrders=orders.filter(o=>isToday(o.createdAt));
+  const activeOrders=todayOrders.filter(o=>o.stepIdx<3);
+  const deliveredToday=todayOrders.filter(o=>o.stepIdx===3);
+
+  // pedidos para ruta: activos, con coordenadas, delivery (no retiro)
+  const routeStops=activeOrders.filter(o=>o.deliveryMethod!=="pickup").map(o=>({
+    code:o.code,name:o.customerName,addr:o.address,zone:o.zone,
+    lat:o.lat!=null?Number(o.lat):null,lng:o.lng!=null?Number(o.lng):null,
+    phone:o.phone,total:o.finalTotal||o.total,stepIdx:o.stepIdx
+  }));
+  const{route,noGeo}=opRoute(routeStops,startPoint);
+  const totalKm=route.reduce((s,r)=>s+(r.legKm||0),0);
+
+  const advance=async(o)=>{
+    const next=Math.min(o.stepIdx+1,3);const steps=(o.steps||[]).slice();steps[next]=Date.now();
+    setUpdating(o.code);
+    try{await OrderStore.updateStatus(o.code,OP_STEPS[next],next,steps);
+      setOrders(prev=>prev.map(x=>x.code===o.code?{...x,stepIdx:next,statusLabel:OP_STEPS[next],steps,updatedAt:Date.now()}:x));
+      toastMsg("✅ "+OP_STEPS[next]);
+    }catch(e){toastMsg("⚠️ Error de conexión");}
+    setUpdating(null);
+  };
+
+  const useMyLocation=()=>{
+    if(!navigator.geolocation){toastMsg("GPS no disponible");return;}
+    toastMsg("📍 Obteniendo tu ubicación...");
+    navigator.geolocation.getCurrentPosition(
+      p=>{setStartPoint({lat:p.coords.latitude,lng:p.coords.longitude,name:"Mi ubicación"});toastMsg("✅ Ruta desde tu ubicación");},
+      ()=>toastMsg("⚠️ No pude obtener tu GPS"),
+      {enableHighAccuracy:true,timeout:10000}
+    );
+  };
+
+  // abrir ruta completa en Google Maps (waypoints en orden)
+  const openFullRoute=()=>{
+    const withGeo=route.filter(r=>r.lat!=null);
+    if(withGeo.length===0){toastMsg("No hay pedidos con ubicación GPS");return;}
+    const origin=startPoint?`${startPoint.lat},${startPoint.lng}`:`${OP_HOME.lat},${OP_HOME.lng}`;
+    const dest=withGeo[withGeo.length-1];
+    const waypoints=withGeo.slice(0,-1).map(r=>`${r.lat},${r.lng}`).join("|");
+    let url=`https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest.lat},${dest.lng}&travelmode=driving`;
+    if(waypoints)url+=`&waypoints=${encodeURIComponent(waypoints)}`;
+    window.open(url,"_blank");
+  };
+
+  // stats del día
+  const revenue=todayOrders.reduce((s,o)=>s+Number(o.finalTotal||o.total||0),0);
+  const byZone={};todayOrders.forEach(o=>{const z=o.deliveryMethod==="pickup"?"Retiro":(o.zone||"—");byZone[z]=(byZone[z]||0)+1;});
+  const topZone=Object.entries(byZone).sort((a,b)=>b[1]-a[1])[0];
+
+  if(!auth){
+    return(
+      <div style={{minHeight:"100vh",background:"var(--bg0)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px"}}>
+        <div style={{fontSize:54,marginBottom:8}}>🔬</div>
+        <div style={{fontFamily:"var(--fd)",fontSize:26,fontWeight:900,color:"var(--cream)",letterSpacing:1,marginBottom:4}}>CENTRO DE CONTROL</div>
+        <div style={{fontSize:13,color:"var(--tx3)",fontFamily:"var(--fm)",marginBottom:28}}>Acceso solo para operadores</div>
+        <input type="password" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==="Enter"&&login()} placeholder="Contraseña" style={{width:"100%",maxWidth:300,padding:"14px 16px",borderRadius:12,border:pwErr?"2px solid var(--fire1)":"1.5px solid var(--bd2)",background:"var(--bg2)",color:"var(--cream)",fontSize:16,textAlign:"center",fontFamily:"var(--fb)",marginBottom:12}}/>
+        {pwErr&&<div style={{fontSize:12,color:"var(--fire1)",fontFamily:"var(--fm)",marginBottom:10}}>Contraseña incorrecta</div>}
+        <button onClick={login} style={{width:"100%",maxWidth:300,padding:"14px",borderRadius:12,border:"none",background:"linear-gradient(135deg,var(--fire1),var(--fire3))",color:"#fff",fontSize:15,fontWeight:800,cursor:"pointer",fontFamily:"var(--fb)"}}>Entrar</button>
+      </div>
+    );
+  }
+
+  return(
+    <div style={{minHeight:"100vh",background:"var(--bg0)",paddingBottom:90,maxWidth:480,margin:"0 auto"}}>
+      {/* HEADER */}
+      <div style={{position:"sticky",top:0,zIndex:100,background:"var(--bg1)",borderBottom:"1px solid var(--bd2)",padding:"16px 18px calc(14px + var(--sb))",paddingTop:"calc(16px + var(--st,0px))"}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <span style={{fontSize:24}}>🔬</span>
+            <div>
+              <div style={{fontFamily:"var(--fd)",fontSize:17,fontWeight:900,color:"var(--cream)",letterSpacing:.5,lineHeight:1}}>CENTRO DE CONTROL</div>
+              <div style={{fontSize:11,color:"var(--tx3)",fontFamily:"var(--fm)",marginTop:2}}>{new Date().toLocaleDateString("es-PA",{weekday:"long",day:"numeric",month:"long"})}</div>
+            </div>
+          </div>
+          <button onClick={load} style={{width:38,height:38,borderRadius:10,border:"1px solid var(--bd2)",background:"var(--bg3)",color:"var(--cream)",fontSize:16,cursor:"pointer"}}>{loading?"⏳":"🔄"}</button>
+        </div>
+      </div>
+
+      {/* RESUMEN DEL DÍA */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,padding:"14px 16px"}}>
+        <div style={{background:"var(--bg2)",border:"1px solid var(--bd2)",borderRadius:12,padding:"12px 10px",textAlign:"center"}}>
+          <div style={{fontSize:22,fontWeight:900,color:"var(--fire3)",fontFamily:"var(--fd)"}}>{todayOrders.length}</div>
+          <div style={{fontSize:10,color:"var(--tx3)",fontFamily:"var(--fm)",marginTop:2}}>PEDIDOS HOY</div>
+        </div>
+        <div style={{background:"var(--bg2)",border:"1px solid var(--bd2)",borderRadius:12,padding:"12px 10px",textAlign:"center"}}>
+          <div style={{fontSize:22,fontWeight:900,color:"var(--green)",fontFamily:"var(--fd)"}}>${revenue.toFixed(0)}</div>
+          <div style={{fontSize:10,color:"var(--tx3)",fontFamily:"var(--fm)",marginTop:2}}>VENTAS HOY</div>
+        </div>
+        <div style={{background:"var(--bg2)",border:"1px solid var(--bd2)",borderRadius:12,padding:"12px 10px",textAlign:"center"}}>
+          <div style={{fontSize:22,fontWeight:900,color:"var(--fire1)",fontFamily:"var(--fd)"}}>{activeOrders.length}</div>
+          <div style={{fontSize:10,color:"var(--tx3)",fontFamily:"var(--fm)",marginTop:2}}>ACTIVOS</div>
+        </div>
+      </div>
+
+      {/* TABS */}
+      <div style={{display:"flex",gap:6,padding:"0 16px 12px"}}>
+        {[["today","📋 Pedidos"],["route","🗺️ Ruta"],["stats","📊 Reportes"]].map(([k,label])=>(
+          <button key={k} onClick={()=>setView(k)} style={{flex:1,padding:"10px 6px",borderRadius:10,border:view===k?"1.5px solid var(--fire3)":"1px solid var(--bd2)",background:view===k?"rgba(255,153,0,.1)":"var(--bg2)",color:view===k?"var(--fire3)":"var(--tx2)",fontSize:13,fontWeight:800,cursor:"pointer",fontFamily:"var(--fb)"}}>{label}</button>
+        ))}
+      </div>
+
+      {/* VISTA: PEDIDOS DE HOY */}
+      {view==="today"&&<div style={{padding:"0 16px"}}>
+        {activeOrders.length===0&&<div style={{textAlign:"center",padding:"50px 20px",color:"var(--tx3)",fontFamily:"var(--fm)",fontSize:14,lineHeight:1.6}}>🧪 No hay pedidos activos.<br/>Los nuevos aparecen aquí automáticamente.</div>}
+        {activeOrders.map(o=>(
+          <div key={o.code} style={{background:"var(--bg2)",border:"1px solid var(--bd2)",borderRadius:16,padding:"16px",marginBottom:12}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+              <div>
+                <div style={{fontSize:15,fontWeight:800,color:"var(--cream)"}}>{o.customerName||"Cliente"}</div>
+                <div style={{fontSize:11,color:"var(--fire3)",fontFamily:"var(--fm)",marginTop:2}}>{o.code} · {o.scheduledFor?"🕐 "+o.scheduledFor:"⚡ Lo antes posible"}</div>
+              </div>
+              <div style={{textAlign:"right"}}>
+                <div style={{fontSize:16,fontWeight:900,color:"var(--green)",fontFamily:"var(--fd)"}}>${Number(o.finalTotal||o.total||0).toFixed(2)}</div>
+                <div style={{fontSize:10,fontWeight:800,color:o.stepIdx===2?"var(--fire1)":"var(--fire3)",fontFamily:"var(--fm)",marginTop:2}}>{o.statusLabel}</div>
+              </div>
+            </div>
+            {/* items */}
+            <div style={{fontSize:12,color:"var(--tx2)",fontFamily:"var(--fm)",lineHeight:1.6,marginBottom:10,paddingBottom:10,borderBottom:"1px solid var(--bd2)"}}>
+              {(o.items||[]).map((it,i)=>{
+                const prot=Array.isArray(it.proteins)?(()=>{const ct={};it.proteins.forEach(p=>{ct[p]=(ct[p]||0)+1;});return Object.entries(ct).map(([n,q])=>q>1?q+"× "+n:n).join(", ");})():"";
+                return<div key={i}>🌮 {it.size}{prot?" · "+prot:""}{it.salsa?" · "+it.salsa:""}</div>;
+              })}
+            </div>
+            {/* ubicación + navegación */}
+            {o.deliveryMethod==="pickup"
+              ?<div style={{fontSize:13,fontWeight:800,color:"var(--green)",fontFamily:"var(--fm)",marginBottom:10}}>🏪 RETIRO: {o.pickupLocation||"—"}</div>
+              :<div style={{marginBottom:10}}>
+                <div style={{fontSize:11,fontWeight:800,color:"var(--fire3)",fontFamily:"var(--fm)",marginBottom:2}}>📍 {o.zone||"Entrega"}</div>
+                {o.address&&<div style={{fontSize:12,color:"var(--tx2)",fontFamily:"var(--fm)",lineHeight:1.4,marginBottom:8}}>{o.address}</div>}
+                <div style={{display:"flex",gap:8}}>
+                  <a href={o.lat?`https://www.google.com/maps/search/?api=1&query=${o.lat},${o.lng}`:`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.address||o.zone||"")}`} target="_blank" rel="noreferrer" style={{flex:1,textAlign:"center",padding:"9px",borderRadius:9,background:"linear-gradient(135deg,#4285F4,#34A853)",color:"#fff",fontSize:12,fontWeight:800,textDecoration:"none",fontFamily:"var(--fm)"}}>🗺️ Maps</a>
+                  <a href={o.lat?`https://waze.com/ul?ll=${o.lat},${o.lng}&navigate=yes`:`https://waze.com/ul?q=${encodeURIComponent(o.address||o.zone||"")}`} target="_blank" rel="noreferrer" style={{flex:1,textAlign:"center",padding:"9px",borderRadius:9,background:"#33ccff",color:"#001b2b",fontSize:12,fontWeight:800,textDecoration:"none",fontFamily:"var(--fm)"}}>🚗 Waze</a>
+                  <a href={`https://wa.me/507${(o.phone||"").replace(/\D/g,"")}`} target="_blank" rel="noreferrer" style={{flex:1,textAlign:"center",padding:"9px",borderRadius:9,background:"#25D366",color:"#fff",fontSize:12,fontWeight:800,textDecoration:"none",fontFamily:"var(--fm)"}}>💬 Chat</a>
+                </div>
+              </div>}
+            {/* progreso de estatus */}
+            <div style={{display:"flex",gap:4,marginBottom:10}}>
+              {OP_STEPS.map((label,i)=>(
+                <div key={i} style={{flex:1,textAlign:"center",padding:"5px 2px",borderRadius:7,fontSize:9,fontWeight:800,fontFamily:"var(--fm)",
+                  background:i<o.stepIdx?"rgba(61,189,82,.15)":i===o.stepIdx?"rgba(255,153,0,.15)":"rgba(255,255,255,.04)",
+                  color:i<o.stepIdx?"var(--green)":i===o.stepIdx?"var(--fire3)":"var(--tx3)"}}>
+                  {i<o.stepIdx?"✓":i===o.stepIdx?"●":"·"} {label.split(" ")[0]}
+                </div>
+              ))}
+            </div>
+            <button onClick={()=>advance(o)} disabled={updating===o.code} style={{width:"100%",padding:"11px",borderRadius:10,border:"none",background:o.stepIdx===2?"linear-gradient(135deg,#3dbd52,#2a9d3f)":"linear-gradient(135deg,var(--fire1),var(--fire3))",color:"#fff",fontSize:13,fontWeight:800,cursor:"pointer",fontFamily:"var(--fb)"}}>
+              {updating===o.code?"⏳ Actualizando...":"➡️ "+OP_STEPS[o.stepIdx+1]}
+            </button>
+          </div>
+        ))}
+      </div>}
+
+      {/* VISTA: RUTA ÓPTIMA */}
+      {view==="route"&&<div style={{padding:"0 16px"}}>
+        <div style={{display:"flex",gap:8,marginBottom:12}}>
+          <button onClick={useMyLocation} style={{flex:1,padding:"11px",borderRadius:10,border:"1px solid var(--bd2)",background:"var(--bg2)",color:"var(--cream)",fontSize:12,fontWeight:800,cursor:"pointer",fontFamily:"var(--fb)"}}>📍 Desde mi ubicación</button>
+          <button onClick={openFullRoute} style={{flex:1.4,padding:"11px",borderRadius:10,border:"none",background:"linear-gradient(135deg,#4285F4,#34A853)",color:"#fff",fontSize:12,fontWeight:800,cursor:"pointer",fontFamily:"var(--fb)"}}>🗺️ Abrir ruta en Maps</button>
+        </div>
+        <div style={{fontSize:12,color:"var(--tx3)",fontFamily:"var(--fm)",marginBottom:10,lineHeight:1.5}}>
+          Salida: <strong style={{color:"var(--cream)"}}>{startPoint?startPoint.name:OP_HOME.name}</strong>
+          {route.length>0&&<> · {route.length} parada{route.length>1?"s":""} · ~{totalKm.toFixed(1)} km</>}
+        </div>
+        {route.length===0&&noGeo.length===0&&<div style={{textAlign:"center",padding:"40px 20px",color:"var(--tx3)",fontFamily:"var(--fm)",fontSize:14}}>🗺️ No hay entregas activas para ordenar.</div>}
+        {route.map((r,i)=>(
+          <div key={r.code} style={{display:"flex",alignItems:"center",gap:12,background:"var(--bg2)",border:"1px solid var(--bd2)",borderRadius:12,padding:"12px 14px",marginBottom:8}}>
+            <div style={{width:30,height:30,borderRadius:"50%",background:"linear-gradient(135deg,var(--fire1),var(--fire3))",color:"#fff",fontSize:14,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"var(--fd)",flexShrink:0}}>{i+1}</div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:13,fontWeight:800,color:"var(--cream)"}}>{r.name}</div>
+              <div style={{fontSize:11,color:"var(--tx3)",fontFamily:"var(--fm)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>📍 {r.zone} · {r.legKm.toFixed(1)} km</div>
+            </div>
+            <a href={`https://waze.com/ul?ll=${r.lat},${r.lng}&navigate=yes`} target="_blank" rel="noreferrer" style={{padding:"8px 12px",borderRadius:9,background:"#33ccff",color:"#001b2b",fontSize:12,fontWeight:800,textDecoration:"none",fontFamily:"var(--fm)",flexShrink:0}}>🚗</a>
+          </div>
+        ))}
+        {noGeo.length>0&&<div style={{marginTop:14}}>
+          <div style={{fontSize:11,fontWeight:800,color:"var(--fire1)",fontFamily:"var(--fm)",marginBottom:8}}>⚠️ SIN UBICACIÓN GPS (ordénalos manual)</div>
+          {noGeo.map(r=>(
+            <div key={r.code} style={{background:"var(--bg2)",border:"1px solid rgba(255,80,0,.2)",borderRadius:12,padding:"12px 14px",marginBottom:8}}>
+              <div style={{fontSize:13,fontWeight:800,color:"var(--cream)"}}>{r.name}</div>
+              <div style={{fontSize:11,color:"var(--tx2)",fontFamily:"var(--fm)",marginTop:2}}>📍 {r.zone} · {r.addr||"sin dirección"}</div>
+            </div>
+          ))}
+        </div>}
+      </div>}
+
+      {/* VISTA: REPORTES */}
+      {view==="stats"&&<div style={{padding:"0 16px"}}>
+        <div style={{background:"var(--bg2)",border:"1px solid var(--bd2)",borderRadius:16,padding:"18px",marginBottom:12}}>
+          <div style={{fontSize:13,fontWeight:800,color:"var(--cream)",marginBottom:14,fontFamily:"var(--fb)"}}>📊 Resumen de hoy</div>
+          {[["Pedidos totales",todayOrders.length],["Entregados",deliveredToday.length],["Activos",activeOrders.length],["Ventas del día","$"+revenue.toFixed(2)],["Ticket promedio","$"+(todayOrders.length?(revenue/todayOrders.length).toFixed(2):"0.00")],["Zona top",topZone?`${topZone[0]} (${topZone[1]})`:"—"]].map(([k,v],i)=>(
+            <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:i<5?"1px solid var(--bd2)":"none"}}>
+              <span style={{fontSize:13,color:"var(--tx2)",fontFamily:"var(--fm)"}}>{k}</span>
+              <span style={{fontSize:14,fontWeight:800,color:"var(--cream)",fontFamily:"var(--fb)"}}>{v}</span>
+            </div>
+          ))}
+        </div>
+        {/* desglose por zona */}
+        <div style={{background:"var(--bg2)",border:"1px solid var(--bd2)",borderRadius:16,padding:"18px"}}>
+          <div style={{fontSize:13,fontWeight:800,color:"var(--cream)",marginBottom:14,fontFamily:"var(--fb)"}}>📍 Pedidos por zona (hoy)</div>
+          {Object.entries(byZone).length===0&&<div style={{fontSize:12,color:"var(--tx3)",fontFamily:"var(--fm)"}}>Sin pedidos aún</div>}
+          {Object.entries(byZone).sort((a,b)=>b[1]-a[1]).map(([z,n],i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+              <div style={{fontSize:12,color:"var(--tx2)",fontFamily:"var(--fm)",width:120,flexShrink:0}}>{z}</div>
+              <div style={{flex:1,height:8,background:"var(--bg4)",borderRadius:4,overflow:"hidden"}}><div style={{height:"100%",width:(n/todayOrders.length*100)+"%",background:"linear-gradient(90deg,var(--fire1),var(--fire3))"}}/></div>
+              <div style={{fontSize:12,fontWeight:800,color:"var(--fire3)",fontFamily:"var(--fd)",width:20,textAlign:"right"}}>{n}</div>
+            </div>
+          ))}
+        </div>
+      </div>}
+
+      {toast&&<div style={{position:"fixed",bottom:30,left:"50%",transform:"translateX(-50%)",background:"var(--bg1)",border:"1px solid var(--bd2)",borderRadius:12,padding:"12px 20px",fontSize:13,fontWeight:700,color:"var(--cream)",fontFamily:"var(--fb)",zIndex:9999,boxShadow:"0 8px 24px rgba(0,0,0,.4)"}}>{toast}</div>}
+    </div>
+  );
+}
+
+// ── ROUTING: /operador → Centro de Control · resto → App cliente ──
+function Root(){
+  const path=(window.location.pathname||"").toLowerCase().replace(/\/+$/,"");
+  if(path.endsWith("/operador")||path.endsWith("/operator")){
+    return <OperatorCenter/>;
+  }
+  return <App/>;
+}
+ReactDOM.createRoot(document.getElementById("app")).render(<Root/>);
 </script>
 </body>
 </html>
