@@ -16,7 +16,7 @@
   <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#080000;--bg2:#120000;--bg3:#1c0000;--bg4:#260202;
+  --bg:#080000;--bg0:#080000;--bg1:#0d0000;--bg2:#120000;--bg3:#1c0000;--bg4:#260202;
   --fire1:#ff1a00;--fire2:#ff5500;--fire3:#ff9900;--fire4:#ffcc00;
   --cream:#fff8ee;--cream2:#ffe8c0;
   --green:#3dbd52;--green2:#28962f;
@@ -31,7 +31,7 @@ html,body{height:100%;margin:0}
 /* ── TEMA CLARO — solo Centro de Control (/operador) ── */
 /* ── TEMA CLARO GLOBAL — cliente + operador (toggle del usuario) ── */
 body.theme-light{
-  --bg:#f4f5f7;--bg0:#f4f5f7;--bg2:#ffffff;--bg3:#f0f1f4;--bg4:#e4e6ea;
+  --bg:#f4f5f7;--bg0:#f4f5f7;--bg1:#fafbfc;--bg2:#ffffff;--bg3:#f0f1f4;--bg4:#e4e6ea;
   --cream:#1a1d21;--cream2:#2a2d31;
   --tx:#1a1d21;--tx2:#5a6068;--tx3:#8a909a;
   --bd:rgba(0,0,0,.08);--bd2:rgba(0,0,0,.14);
@@ -96,6 +96,12 @@ body{font-family:var(--fb);background:#000;color:var(--tx);overflow-x:clip;-webk
   #app{min-height:100vh;box-shadow:0 0 80px rgba(255,100,0,.12),0 0 200px rgba(0,0,0,.8);border-left:1px solid rgba(255,80,0,.08);border-right:1px solid rgba(255,80,0,.08);}
   .bnav{max-width:430px;}
   .hdr{max-width:430px;}
+}
+/* ── MODO OPERADOR (/operador) — dashboard ancho en desktop ── */
+body.op-mode #app{padding-top:var(--st);padding-bottom:24px;}
+@media(min-width:760px){
+  body.op-mode{align-items:flex-start;}
+  body.op-mode #app{max-width:760px;border-radius:0;}
 }
 
 /* ── KEYFRAMES ── */
@@ -1378,7 +1384,7 @@ if(localStorage.getItem("nl_data_version")!==DATA_VERSION){
   ["sizes","proteins","salsas","bases","toppings","payments","events","sched","theme","settings","drinks","special","promos","proteinRules","animCfg"].forEach(k=>localStorage.removeItem("nl5_"+k));
   localStorage.setItem("nl_data_version",DATA_VERSION);
 }
-const APP_VER="8.3";
+const APP_VER="8.4";
 // ── TEMA: aplicar claro/oscuro a toda la plataforma ──
 function applyTheme(t){
   try{
@@ -4966,7 +4972,7 @@ function OperatorCenter(){
   }
 
   return(
-    <div style={{minHeight:"100vh",background:"var(--bg0)",paddingBottom:90,maxWidth:480,margin:"0 auto"}}>
+    <div style={{minHeight:"100vh",background:"var(--bg0)",paddingBottom:90,maxWidth:760,width:"100%",margin:"0 auto"}}>
       {/* HEADER */}
       <div style={{position:"sticky",top:0,zIndex:100,background:"var(--bg1)",borderBottom:"1px solid var(--bd2)",padding:"16px 18px calc(14px + var(--sb))",paddingTop:"calc(16px + var(--st,0px))"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
@@ -5397,9 +5403,9 @@ function OperatorCenter(){
       </div>}
 
       {/* ════════ VISTA: ASISTENTE IA ════════ */}
-      {view==="ia"&&<div style={{padding:"0 16px",display:"flex",flexDirection:"column",height:"calc(100vh - 230px)",minHeight:400}}>
+      {view==="ia"&&<div style={{padding:"0 16px 16px",display:"flex",flexDirection:"column",height:"calc(100vh - 250px)",minHeight:460}}>
         {/* chips de acciones rápidas */}
-        <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:10,flexShrink:0}}>
+        <div style={{display:"flex",gap:8,overflowX:"auto",paddingBottom:12,flexShrink:0,scrollbarWidth:"none"}}>
           {[
             ["📊 ¿Cómo voy?","Dame un resumen rápido de cómo va el negocio con mis números actuales y qué te llama la atención."],
             ["🥩 ¿Qué reabastezco?","Según mis ventas y proteínas, ¿qué crees que debería reabastecer pronto?"],
@@ -5411,10 +5417,10 @@ function OperatorCenter(){
         </div>
 
         {/* mensajes */}
-        <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",gap:10,padding:"6px 2px"}}>
+        <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",gap:12,padding:"16px",background:"var(--bg0)",border:"1px solid var(--bd2)",borderRadius:16,marginBottom:10}}>
           {iaMsgs.map((m,i)=>(
             <div key={i} style={{alignSelf:m.role==="user"?"flex-end":"flex-start",maxWidth:"85%"}}>
-              <div style={{background:m.role==="user"?"linear-gradient(135deg,var(--fire2),var(--fire1))":"var(--bg2)",border:m.role==="user"?"none":"1px solid var(--bd2)",borderRadius:m.role==="user"?"14px 14px 4px 14px":"14px 14px 14px 4px",padding:"11px 14px",fontSize:13.5,lineHeight:1.5,color:m.role==="user"?"#fff":"var(--cream)",fontFamily:"var(--fb)",whiteSpace:"pre-wrap",wordBreak:"break-word"}}>{m.content}</div>
+              <div style={{background:m.role==="user"?"linear-gradient(135deg,var(--fire2),var(--fire1))":"var(--bg3)",border:m.role==="user"?"none":"1px solid var(--bd2)",borderRadius:m.role==="user"?"16px 16px 5px 16px":"16px 16px 16px 5px",padding:"12px 15px",fontSize:14,lineHeight:1.55,color:m.role==="user"?"#fff":"var(--cream)",fontFamily:"var(--fb)",whiteSpace:"pre-wrap",wordBreak:"break-word",boxShadow:m.role==="user"?"0 4px 14px rgba(255,90,0,.25)":"0 2px 8px rgba(0,0,0,.2)"}}>{m.content}</div>
             </div>
           ))}
           {iaLoading&&<div style={{alignSelf:"flex-start",maxWidth:"85%"}}>
@@ -5452,6 +5458,10 @@ function Root(){
     return <OperatorCenter/>;
   }
   return <App/>;
+}
+// Modo operador: ensancha y limpia el layout para el Centro de Control
+if(/\/(operador|operator)\/?$/.test((window.location.pathname||"").toLowerCase())){
+  document.body.classList.add("op-mode");
 }
 ReactDOM.createRoot(document.getElementById("app")).render(<Root/>);
 </script>
