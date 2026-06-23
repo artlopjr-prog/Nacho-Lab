@@ -4,9 +4,6 @@
 //  La GROQ_API_KEY vive como variable de entorno en Vercel (NUNCA en el frontend).
 // ════════════════════════════════════════════════════════════════
 
-// Vercel: dar más tiempo a la función (gpt-oss razona y tarda)
-export const config = { maxDuration: 30 };
-
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método no permitido" });
@@ -18,7 +15,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { messages, image, context } = req.body || {};
+    let body = req.body || {};
+    if (typeof body === "string") {
+      try { body = JSON.parse(body); } catch (_) { body = {}; }
+    }
+    const { messages, image, context } = body;
 
     // ── Conocimiento del negocio (menú EXACTO y reglas duras) ──
     const system = `Eres el asistente de IA interno de NACHO LAB, marca de nachos build-your-own delivery-only en Ciudad de Panamá (entidad legal Stark Loro, Inc.). Hablas SOLO con Arturo, el dueño y único operador. Eres su co-piloto de negocio: directo, estratégico, accionable, en español panameño, cálido pero sin relleno. Respuestas CORTAS y al grano (máximo 6-8 líneas salvo que pida detalle).
@@ -125,12 +126,6 @@ Cuando te pasen una factura (foto), extrae: proveedor, fecha, productos con prec
     const reply =
       (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) ||
       "No pude generar una respuesta. Intenta de nuevo.";
-
-    return res.status(200).json({ reply });
-  } catch (e) {
-    return res.status(500).json({ error: (e && e.message) || "Error del servidor" });
-  }
-}
 
     return res.status(200).json({ reply });
   } catch (e) {
