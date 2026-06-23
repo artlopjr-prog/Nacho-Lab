@@ -4,6 +4,9 @@
 //  La GROQ_API_KEY vive como variable de entorno en Vercel (NUNCA en el frontend).
 // ════════════════════════════════════════════════════════════════
 
+// Vercel: dar más tiempo a la función (gpt-oss razona y tarda)
+export const config = { maxDuration: 30 };
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método no permitido" });
@@ -95,18 +98,22 @@ Cuando te pasen una factura (foto), extrae: proveedor, fecha, productos con prec
       ];
     }
 
+    const payload = {
+      model,
+      messages: apiMessages,
+      temperature: 0.5,
+      max_completion_tokens: 1024,
+    };
+    // gpt-oss razona; "low" = responde más rápido (evita timeout). No aplica a visión.
+    if (!image) payload.reasoning_effort = "low";
+
     const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${KEY}`,
       },
-      body: JSON.stringify({
-        model,
-        messages: apiMessages,
-        temperature: 0.5,
-        max_completion_tokens: 1200,
-      }),
+      body: JSON.stringify(payload),
     });
 
     const data = await r.json();
